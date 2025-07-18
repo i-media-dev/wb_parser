@@ -20,7 +20,7 @@ class WbAnalyticsClient:
             "Content-Type": "application/json"
         }
 
-    def get_stock_report(
+    def _get_stock_report(
         self,
         start_date: str,
         end_date: str,
@@ -67,7 +67,7 @@ class WbAnalyticsClient:
 
         while True:
             try:
-                result = self.get_stock_report(
+                result = self._get_stock_report(
                     start_date, end_date, offset=offset, limit=limit)
             except requests.HTTPError as e:
                 if e.response.status_code == 429:
@@ -89,9 +89,14 @@ class WbAnalyticsClient:
         return all_data
 
     @staticmethod
-    def save_to_json(data: list, date_str: str, folder: str = 'data'):
+    def _get_filename(format: str, date_str: str, folder: str = 'data'):
         os.makedirs(folder, exist_ok=True)
-        filename = os.path.join(folder, f'stocks_{date_str}.json')
+        filename = os.path.join(folder, f'stocks_{date_str}.{format}')
+        return filename
+
+    @staticmethod
+    def save_to_json(data: list, date_str: str, folder: str = 'data'):
+        filename = WbAnalyticsClient._get_filename('json', date_str)
 
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -101,16 +106,17 @@ class WbAnalyticsClient:
     @staticmethod
     def save_to_csv(data: list, date_str: str, folder: str = 'data'):
         rows = []
-
-        os.makedirs(folder, exist_ok=True)
-        filename = os.path.join(folder, f'wb_stocks_{date_str}.csv')
+        filename = WbAnalyticsClient._get_filename('csv', date_str)
 
         for item in data:
-            rows.append({
-                'наименование': item.get('name', '').strip('""'),
-                'артикул': item.get('nmID', ''),
-                'остаток': item.get('metrics', {}).get('stockCount', 0)
-            })
+            rows.append(
+                {
+                    'дата': date_str,
+                    'наименование': item.get('name', '').strip('""'),
+                    'артикул': item.get('nmID', ''),
+                    'остаток': item.get('metrics', {}).get('stockCount', 0)
+                }
+            )
         with open(
             filename,
             'w',
@@ -119,7 +125,7 @@ class WbAnalyticsClient:
         ) as f:
             writer = csv.DictWriter(
                 f,
-                fieldnames=['наименование', 'артикул', 'остаток'],
+                fieldnames=['дата', 'наименование', 'артикул', 'остаток'],
                 delimiter=';'
             )
             writer.writeheader()
