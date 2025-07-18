@@ -1,11 +1,15 @@
 import csv
 import os
+import logging
 import json
 import time
 import requests
 from datetime import datetime as dt, timedelta
 
-from constants import WB_PRODUCT_DATA
+from constants import DATA_PAGE_LIMIT, WB_PRODUCT_DATA
+from logging_config import setup_logging
+
+setup_logging()
 
 
 class WbAnalyticsClient:
@@ -13,6 +17,9 @@ class WbAnalyticsClient:
 
     def __init__(self, token: str):
         if not token:
+
+            logging.error('Токен не действителен или отсутствует.')
+
             raise ValueError('API token is required')
         self.token = token
         self.headers = {
@@ -25,7 +32,7 @@ class WbAnalyticsClient:
         start_date: str,
         end_date: str,
         offset: int = 0,
-        limit: int = 1000
+        limit: int = DATA_PAGE_LIMIT
     ) -> dict:
         payload = {
             "stockType": "",
@@ -52,7 +59,9 @@ class WbAnalyticsClient:
 
         response = requests.post(
             self.BASE_URL, headers=self.headers, json=payload)
-        print(f'[{response.status_code}] offset={offset}')
+        # print(f'limit={limit}\n[{response.status_code}] offset={offset}')
+        logging.info(
+            f'limit={limit}\n[{response.status_code}] offset={offset}')
         response.raise_for_status()
         return response.json()
 
@@ -60,10 +69,12 @@ class WbAnalyticsClient:
         self,
         start_date: str,
         end_date: str,
-        limit: int = 1000
+        limit: int = DATA_PAGE_LIMIT
     ) -> list:
         offset = 0
         all_data = []
+
+        logging.debug('Функция начала работу')
 
         while True:
             try:
@@ -71,21 +82,29 @@ class WbAnalyticsClient:
                     start_date, end_date, offset=offset, limit=limit)
             except requests.HTTPError as e:
                 if e.response.status_code == 429:
-                    print('⏳ Превышен лимит запросов (429). Ждём 60 секунд...')
+                    # print('⏳ Превышен лимит запросов (429). Ждём 60 секунд...')
+                    logging.warning(
+                        '⏳ Превышен лимит запросов (429). Ждём 60 секунд...')
                     time.sleep(60)
                     continue
                 else:
+                    logging.error(
+                        f'Код ответа сервера: {e.response.status_code}')
                     raise
 
             data = result.get('data', [])
             if not data['items']:
-                print('✅ Все страницы загружены.')
+                # print('✅ Все страницы загружены.')
+                logging.info('✅ Все страницы загружены.')
                 break
 
             all_data.extend(data['items'])
             offset += limit
 
             time.sleep(20)
+
+        logging.debug('Функция завершила работу')
+
         return all_data
 
     @staticmethod
@@ -96,16 +115,24 @@ class WbAnalyticsClient:
 
     @staticmethod
     def save_to_json(data: list, date_str: str, folder: str = 'data'):
+
+        logging.debug('Сохранение файла...')
+
         filename = WbAnalyticsClient._get_filename('json', date_str)
 
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        print(f'✅ Данные сохранены в {filename}')
+        # print(f'✅ Данные сохранены в {filename}')
+        logging.info(f'✅ Данные сохранены в {filename}')
+        logging.debug('Файл сохранен.')
 
     @staticmethod
     def save_to_csv(data: list, date_str: str, folder: str = 'data'):
         rows = []
+
+        logging.debug('Сохранение файла...')
+
         filename = WbAnalyticsClient._get_filename('csv', date_str)
 
         for item in data:
@@ -130,7 +157,9 @@ class WbAnalyticsClient:
             )
             writer.writeheader()
             writer.writerows(rows)
-        print(f'✅ Данные сохранены в {filename}')
+        # print(f'✅ Данные сохранены в {filename}')
+        logging.info(f'✅ Данные сохранены в {filename}')
+        logging.debug('Файл сохранен.')
 
 
 def get_yesterday_date_str() -> str:
