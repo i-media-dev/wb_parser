@@ -20,6 +20,13 @@ def setup_logging():
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s, %(filename)s, %(funcName)s, %(levelname)s, %(message)s, %(name)s',
+        format=(
+            '%(asctime)s, '
+            '%(filename)s, '
+            '%(funcName)s, '
+            '%(levelname)s, '
+            '%(message)s, '
+            '%(name)s'
+        ),
         handlers=[handler]
     )

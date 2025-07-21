@@ -1,19 +1,22 @@
 import csv
+from collections import defaultdict
 import os
 import logging
 import json
 import time
 import requests
 from datetime import datetime as dt, timedelta
+# from pprint import pprint
 
-from constants import DATA_PAGE_LIMIT, WB_PRODUCT_DATA
+from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
 from logging_config import setup_logging
 
 setup_logging()
 
 
 class WbAnalyticsClient:
-    BASE_URL = WB_PRODUCT_DATA
+    PRODUCT_DATA_URL = WB_PRODUCT_DATA
+    AVG_SALES_URL = WB_AVG_SALES
 
     def __init__(self, token: str):
         if not token:
@@ -26,6 +29,24 @@ class WbAnalyticsClient:
             "Authorization": self.token,
             "Content-Type": "application/json"
         }
+
+    def _get_sale_report(
+            self,
+            date: str,
+    ):
+        params = {
+            "dateFrom": date
+        }
+        response = requests.get(
+            self.AVG_SALES_URL,
+            headers=self.headers,
+            params=params
+        )
+        logging.info(
+            f'\n[{response.status_code}]'
+        )
+        response.raise_for_status()
+        return response.json()
 
     def _get_stock_report(
         self,
@@ -58,12 +79,53 @@ class WbAnalyticsClient:
         }
 
         response = requests.post(
-            self.BASE_URL, headers=self.headers, json=payload)
-        # print(f'limit={limit}\n[{response.status_code}] offset={offset}')
+            self.PRODUCT_DATA_URL,
+            headers=self.headers,
+            json=payload
+        )
+
         logging.info(
-            f'limit={limit}\n[{response.status_code}] offset={offset}')
+            f'\n[{response.status_code}], limit={limit}, offset={offset}'
+        )
         response.raise_for_status()
         return response.json()
+
+    def get_all_sales_reports(self, date: str) -> list:
+        date_formatted = dt.strptime(date, "%Y-%m-%d").date()
+        start_date = (
+            date_formatted - timedelta(days=TWO_WEEK)
+        ).strftime('%Y-%m-%d')
+        all_data = []
+        current_date = start_date
+
+        logging.debug('Функция начала работу')
+        while True:
+            try:
+                result = self._get_sale_report(current_date)
+            except requests.HTTPError as e:
+                if e.response.status_code == 429:
+
+                    logging.warning(
+                        '⏳ Превышен лимит запросов (429). Ждём 60 секунд...'
+                    )
+                    time.sleep(60)
+                    continue
+                else:
+                    logging.error(
+                        f'Код ответа сервера: {e.response.status_code}')
+                    raise
+            if not result:
+                logging.info('✅ Все страницы загружены.')
+                break
+            filtered_result = [
+                sale for sale in result
+                if start_date <= sale['date'][:10] <= date_formatted.strftime('%Y-%m-%d')
+            ]
+            all_data.extend(filtered_result)
+            current_date = result[-1]['lastChangeDate']
+            time.sleep(60)
+        logging.debug('Функция завершила работу')
+        return all_data
 
     def get_all_stock_reports(
         self,
@@ -75,65 +137,35 @@ class WbAnalyticsClient:
         all_data = []
 
         logging.debug('Функция начала работу')
-
         while True:
             try:
                 result = self._get_stock_report(
                     start_date, end_date, offset=offset, limit=limit)
             except requests.HTTPError as e:
                 if e.response.status_code == 429:
-                    # print('⏳ Превышен лимит запросов (429). Ждём 60 секунд...')
+
                     logging.warning(
-                        '⏳ Превышен лимит запросов (429). Ждём 60 секунд...')
+                        '⏳ Превышен лимит запросов (429). Ждём 60 секунд...'
+                    )
                     time.sleep(60)
                     continue
                 else:
                     logging.error(
                         f'Код ответа сервера: {e.response.status_code}')
                     raise
-
             data = result.get('data', [])
             if not data['items']:
-                # print('✅ Все страницы загружены.')
                 logging.info('✅ Все страницы загружены.')
                 break
-
             all_data.extend(data['items'])
             offset += limit
-
             time.sleep(20)
-
         logging.debug('Функция завершила работу')
-
         return all_data
 
     @staticmethod
-    def _get_filename(format: str, date_str: str, folder: str = 'data'):
-        os.makedirs(folder, exist_ok=True)
-        filename = os.path.join(folder, f'stocks_{date_str}.{format}')
-        return filename
-
-    @staticmethod
-    def save_to_json(data: list, date_str: str, folder: str = 'data'):
-
-        logging.debug('Сохранение файла...')
-
-        filename = WbAnalyticsClient._get_filename('json', date_str)
-
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-        # print(f'✅ Данные сохранены в {filename}')
-        logging.info(f'✅ Данные сохранены в {filename}')
-        logging.debug('Файл сохранен.')
-
-    @staticmethod
-    def save_to_csv(data: list, date_str: str, folder: str = 'data'):
+    def parce_product_data(data, date_str):
         rows = []
-
-        logging.debug('Сохранение файла...')
-
-        filename = WbAnalyticsClient._get_filename('csv', date_str)
 
         for item in data:
             rows.append(
@@ -144,6 +176,64 @@ class WbAnalyticsClient:
                     'остаток': item.get('metrics', {}).get('stockCount', 0)
                 }
             )
+        return rows
+
+    @staticmethod
+    def parce_avg_sales(data, date_str):
+        avg_sales = []
+        sales_by_article = defaultdict(int)
+
+        for item in data:
+            if item.get('isRealization') and not item.get('isCancel'):
+                article = item['nmId']
+                sales_by_article[article] += 1
+
+        for article, total_sales in sales_by_article.items():
+            avg_per_day = total_sales / TWO_WEEK
+            avg_sales.append({
+                'дата': date_str,
+                'артикул': article,
+                'среднее значение': round(avg_per_day, 2)
+            })
+        return avg_sales
+
+    @staticmethod
+    def _get_filename(
+        format: str,
+        date_str: str,
+        prefix: str = 'stocks',
+        folder: str = 'data'
+    ):
+        os.makedirs(folder, exist_ok=True)
+        filename = os.path.join(folder, f'{prefix}_{date_str}.{format}')
+        return filename
+
+    @staticmethod
+    def save_to_json(
+        data: list,
+        date_str: str,
+        prefix: str = 'stocks',
+        folder: str = 'data'
+    ):
+        logging.debug('Сохранение файла...')
+        filename = WbAnalyticsClient._get_filename(
+            'json', date_str, prefix, folder)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        logging.info(f'✅ Данные сохранены в {filename}')
+        logging.debug('Файл сохранен.')
+
+    @staticmethod
+    def save_to_csv(
+        data: list,
+        date_str: str,
+        fieldnames: list,
+        prefix: str = 'stocks',
+        folder: str = 'data'
+    ):
+        logging.debug('Сохранение файла...')
+        filename = WbAnalyticsClient._get_filename(
+            'csv', date_str, prefix, folder)
         with open(
             filename,
             'w',
@@ -152,12 +242,11 @@ class WbAnalyticsClient:
         ) as f:
             writer = csv.DictWriter(
                 f,
-                fieldnames=['дата', 'наименование', 'артикул', 'остаток'],
+                fieldnames=fieldnames,
                 delimiter=';'
             )
             writer.writeheader()
-            writer.writerows(rows)
-        # print(f'✅ Данные сохранены в {filename}')
+            writer.writerows(data)
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')
 

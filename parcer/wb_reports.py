@@ -10,11 +10,12 @@ setup_logging()
 
 
 def main():
+    '''Основная логика программы.'''
+
     load_dotenv()
     token = os.getenv('TOKEN')
 
     if not token:
-        # print("❌ Токен не найден.")
         logging.error('Файл сохранен.')
         return
 
@@ -22,18 +23,34 @@ def main():
     date_str = get_yesterday_date_str()
 
     try:
+        all_sales = client.get_all_sales_reports(date_str)
         all_data = client.get_all_stock_reports(
             start_date=date_str,
             end_date=date_str
         )
 
-        # print(f'\n✅ Получено записей: {len(all_data)}')
         logging.info(f'\n✅ Получено записей: {len(all_data)}')
+        logging.info(f'\n✅ Получено записей: {len(all_sales)}')
 
+        formatter_sales = client.parce_avg_sales(all_sales, date_str)
+        formatter_data = client.parce_product_data(all_data, date_str)
+
+        client.save_to_json(all_sales, date_str, 'avg_sales')
         client.save_to_json(all_data, date_str)
-        client.save_to_csv(all_data, date_str)
+
+        client.save_to_csv(
+            formatter_sales,
+            date_str,
+            ['дата', 'артикул', 'среднее значение'],
+            'avg_sales'
+        )
+        client.save_to_csv(
+            formatter_data,
+            date_str,
+            ['дата', 'наименование', 'артикул', 'остаток']
+        )
     except requests.RequestException as e:
-        # print(f'❌ Ошибка запроса: {e}')
+
         logging.error(f'❌ Ошибка запроса: {e}')
 
 
