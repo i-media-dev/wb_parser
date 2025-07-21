@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import logging
+import time
 
 from logging_config import setup_logging
 from wb_tools import get_yesterday_date_str, WbAnalyticsClient
@@ -29,8 +30,10 @@ def main():
             end_date=date_str
         )
 
-        logging.info(f'\n✅ Получено записей: {len(all_data)}')
-        logging.info(f'\n✅ Получено записей: {len(all_sales)}')
+        logging.info(f'\n✅ Получено записей по остаткам: {len(all_data)}')
+        logging.info(
+            f'\n✅ Получено записей по продажам за 2 недели: {len(all_sales)}'
+        )
 
         formatter_sales = client.parce_avg_sales(all_sales, date_str)
         formatter_data = client.parce_product_data(all_data, date_str)
@@ -55,4 +58,12 @@ def main():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
+    print('Функция main начала работу')
+    logging.info('Функция main начала работу')
     main()
+    execution_time = round(time.time() - start_time, 3)
+    logging.info(
+        f'Функция main завершила работу. Время выполнения - {execution_time} сек. или {round(execution_time/60, 2)} мин.')
+    print(
+        f'Функция main завершила работу. Время выполнения - {execution_time} сек. или {round(execution_time/60, 2)} мин.')
