@@ -252,6 +252,9 @@ class WbAnalyticsClient:
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')
 
+    def save_to_db(self, data, date_str):
+        pass
+
 
 def get_yesterday_date_str() -> str:
     yesterday = dt.now() - timedelta(days=1)
