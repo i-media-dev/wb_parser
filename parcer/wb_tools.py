@@ -1,14 +1,14 @@
 import csv
 from collections import defaultdict
-import os
 import logging
+import os
 import json
 import time
 import requests
 from datetime import datetime as dt, timedelta
-# from pprint import pprint
 
 from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
+from decorators import time_of_function
 from logging_config import setup_logging
 
 setup_logging()
@@ -90,6 +90,7 @@ class WbAnalyticsClient:
         response.raise_for_status()
         return response.json()
 
+    @time_of_function
     def get_all_sales_reports(self, date: str) -> list:
         date_formatted = dt.strptime(date, "%Y-%m-%d").date()
         start_date = (
@@ -127,6 +128,7 @@ class WbAnalyticsClient:
         logging.debug('Функция завершила работу')
         return all_data
 
+    @time_of_function
     def get_all_stock_reports(
         self,
         start_date: str,
@@ -163,8 +165,7 @@ class WbAnalyticsClient:
         logging.debug('Функция завершила работу')
         return all_data
 
-    @staticmethod
-    def parce_product_data(data, date_str):
+    def parce_product_data(self, data, date_str):
         rows = []
 
         for item in data:
@@ -178,8 +179,7 @@ class WbAnalyticsClient:
             )
         return rows
 
-    @staticmethod
-    def parce_avg_sales(data, date_str):
+    def parce_avg_sales(self, data, date_str):
         avg_sales = []
         sales_by_article = defaultdict(int)
 
@@ -208,8 +208,9 @@ class WbAnalyticsClient:
         filename = os.path.join(folder, f'{prefix}_{date_str}.{format}')
         return filename
 
-    @staticmethod
+    @time_of_function
     def save_to_json(
+        self,
         data: list,
         date_str: str,
         prefix: str = 'stocks',
@@ -223,8 +224,9 @@ class WbAnalyticsClient:
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')
 
-    @staticmethod
+    @time_of_function
     def save_to_csv(
+        self,
         data: list,
         date_str: str,
         fieldnames: list,

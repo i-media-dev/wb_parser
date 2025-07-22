@@ -4,12 +4,14 @@ import requests
 import logging
 import time
 
+from decorators import time_of_function
 from logging_config import setup_logging
 from wb_tools import get_yesterday_date_str, WbAnalyticsClient
 
 setup_logging()
 
 
+@time_of_function
 def main():
     '''Основная логика программы.'''
 
@@ -60,10 +62,7 @@ def main():
 if __name__ == '__main__':
     start_time = time.time()
     print('Функция main начала работу')
-    logging.info('Функция main начала работу')
     main()
     execution_time = round(time.time() - start_time, 3)
-    logging.info(
-        f'Функция main завершила работу. Время выполнения - {execution_time} сек. или {round(execution_time/60, 2)} мин.')
     print(
         f'Функция main завершила работу. Время выполнения - {execution_time} сек. или {round(execution_time/60, 2)} мин.')
