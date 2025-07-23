@@ -6,8 +6,10 @@ import json
 import time
 import requests
 from datetime import datetime as dt, timedelta
+import mysql.connector
 
 from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
+from db_config import config
 from decorators import time_of_function
 from logging_config import setup_logging
 
@@ -166,10 +168,10 @@ class WbAnalyticsClient:
         return all_data
 
     def parce_product_data(self, data, date_str):
-        rows = []
+        stocks = []
 
         for item in data:
-            rows.append(
+            stocks.append(
                 {
                     'дата': date_str,
                     'наименование': item.get('name', '').strip('""'),
@@ -177,7 +179,7 @@ class WbAnalyticsClient:
                     'остаток': item.get('metrics', {}).get('stockCount', 0)
                 }
             )
-        return rows
+        return stocks
 
     def parce_avg_sales(self, data, date_str):
         avg_sales = []
@@ -189,7 +191,7 @@ class WbAnalyticsClient:
                 sales_by_article[article] += 1
 
         for article, total_sales in sales_by_article.items():
-            avg_per_day = total_sales / TWO_WEEK
+            avg_per_day = total_sales // TWO_WEEK
             avg_sales.append({
                 'дата': date_str,
                 'артикул': article,
@@ -252,8 +254,40 @@ class WbAnalyticsClient:
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')
 
-    def save_to_db(self, data, date_str):
-        pass
+    # def preparing_date_db(self, date_str):
+        # date = dt.strptime(date_str, "%Y-%m-%d").date()
+        # day = date.day
+        # month = date.month
+        # year = date.year
+        # weekday = date.weekday()
+
+        # """
+        # INSERT INTO dates (full_date, day, month, year, day_of_week)
+        # VALUES (%s, %s, %s, %s, %s)
+        # ON DUPLICATE KEY UPDATE
+        # day = VALUES(day),
+        # month = VALUES(month),
+        # year = VALUES(year),
+        # day_of_week = VALUES(day_of_week)
+        # """,
+        # (date, day, month, year, weekday)
+
+    def save_to_db(self, query):
+        try:
+            connection = mysql.connector.connect(**config)
+            cursor = connection.cursor()
+            print('✅ Успешное подключение к базе данных!')
+            cursor.execute(query)
+            connection.commit()
+        except mysql.connector.Error as err:
+            print(f'❌ Ошибка: {err}')
+            if 'connection' in locals():
+                connection.rollback()
+        finally:
+            if 'connection' in locals() and connection.is_connected():
+                cursor.close()
+                connection.close()
+                print('Соединение закрыто.')
 
 
 def get_yesterday_date_str() -> str:
