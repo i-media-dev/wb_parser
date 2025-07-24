@@ -34,7 +34,7 @@ class WbAnalyticsClient:
     def _get_sale_report(
             self,
             date: str,
-    ):
+    ) -> dict:
         params = {
             "dateFrom": date
         }
@@ -169,7 +169,7 @@ class WbAnalyticsClient:
         logging.debug('Функция завершила работу')
         return all_data
 
-    def parce_product_data(self, data, date_str):
+    def parce_product_data(self, data: list, date_str: str) -> list:
         stocks = []
 
         for item in data:
@@ -183,7 +183,7 @@ class WbAnalyticsClient:
             )
         return stocks
 
-    def parce_avg_sales(self, data, date_str):
+    def parce_avg_sales(self, data: list, date_str: str) -> list:
         avg_sales = []
         sales_by_article = defaultdict(int)
 
@@ -207,7 +207,7 @@ class WbAnalyticsClient:
         date_str: str,
         prefix: str = 'stocks',
         folder: str = 'data'
-    ):
+    ) -> str:
         os.makedirs(folder, exist_ok=True)
         filename = os.path.join(folder, f'{prefix}_{date_str}.{format}')
         return filename
@@ -219,7 +219,7 @@ class WbAnalyticsClient:
         date_str: str,
         prefix: str = 'stocks',
         folder: str = 'data'
-    ):
+    ) -> None:
         logging.debug('Сохранение файла...')
         filename = WbAnalyticsClient._get_filename(
             'json', date_str, prefix, folder)
@@ -236,7 +236,7 @@ class WbAnalyticsClient:
         fieldnames: list,
         prefix: str = 'stocks',
         folder: str = 'data'
-    ):
+    ) -> None:
         logging.debug('Сохранение файла...')
         filename = WbAnalyticsClient._get_filename(
             'csv', date_str, prefix, folder)
@@ -255,8 +255,3 @@ class WbAnalyticsClient:
             writer.writerows(data)
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')
-
-
-def get_yesterday_date_str() -> str:
-    yesterday = dt.now() - timedelta(days=1)
-    return yesterday.strftime('%Y-%m-%d')

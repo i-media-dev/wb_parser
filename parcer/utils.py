@@ -21,7 +21,7 @@ def initialize_components():
     return token, db_client, client, date_str
 
 
-def fetch_data(client, date_str):
+def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
     '''Получает данные с API.'''
     all_sales = client.get_all_sales_reports(date_str)
     all_data = client.get_all_stock_reports(
@@ -32,14 +32,24 @@ def fetch_data(client, date_str):
     return all_sales, all_data
 
 
-def process_data(client, all_sales, all_data, date_str):
+def process_data(
+    client: WbAnalyticsClient,
+    all_sales: list,
+    all_data: list,
+    date_str: str
+) -> tuple:
     '''Обрабатывает данные перед сохранением в бд.'''
     formatter_sales = client.parce_avg_sales(all_sales, date_str)
     formatter_data = client.parce_product_data(all_data, date_str)
     return formatter_sales, formatter_data
 
 
-def save_to_database(db_client, date_str, formatter_data, formatter_sales):
+def save_to_database(
+    db_client: WbDataBaseClient,
+    date_str: str,
+    formatter_data: list,
+    formatter_sales: list
+):
     '''Сохраняет данные в базу данных.'''
     queries = [
         db_client.validate_date_db(date_str),
@@ -53,12 +63,12 @@ def save_to_database(db_client, date_str, formatter_data, formatter_sales):
 
 
 def export_data(
-    client,
-    date_str,
-    all_data,
-    all_sales,
-    formatter_sales,
-    formatter_data
+    client: WbAnalyticsClient,
+    date_str: str,
+    all_data: list,
+    all_sales: list,
+    formatter_sales: list,
+    formatter_data: list
 ):
     '''Экспортирует данные в JSON и CSV.'''
     client.save_to_json(all_sales, date_str, 'avg_sales')

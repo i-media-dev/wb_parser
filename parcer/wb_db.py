@@ -3,6 +3,7 @@ from datetime import datetime as dt
 
 import mysql.connector
 
+from constants import ALLOWED_TABLES
 from decorators import connection_db
 from logging_config import setup_logging
 
@@ -10,8 +11,9 @@ setup_logging()
 
 
 class WbDataBaseClient:
+    ALLOWED_TABLES_IN_DB = ALLOWED_TABLES
 
-    def validate_date_db(self, date_str):
+    def validate_date_db(self, date_str: str) -> tuple:
         date = dt.strptime(date_str, '%Y-%m-%d').date()
         day = date.day
         month = date.month
@@ -26,7 +28,7 @@ class WbDataBaseClient:
         '''
         return query, (date, day, month, year, weekday)
 
-    def validate_products_db(self, data):
+    def validate_products_db(self, data: list) -> tuple:
         query = '''
             INSERT INTO products (article, name)
             VALUES (%s, %s)
@@ -36,7 +38,7 @@ class WbDataBaseClient:
         params = [(item['артикул'], item['наименование']) for item in data]
         return query, params
 
-    def validate_stocks_db(self, data):
+    def validate_stocks_db(self, data: list) -> tuple:
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
 
         query = '''
@@ -48,7 +50,7 @@ class WbDataBaseClient:
         params = [(date, item['артикул'], item['остаток']) for item in data]
         return query, params
 
-    def validate_sales_db(self, data):
+    def validate_sales_db(self, data: list) -> tuple:
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
 
         query = '''
@@ -63,7 +65,7 @@ class WbDataBaseClient:
         return query, params
 
     @connection_db
-    def save_to_db(self, query_data, connection=None, cursor=None):
+    def save_to_db(self, query_data: tuple, connection=None, cursor=None) -> None:
         query, params = query_data
         if isinstance(params, list):
             cursor.executemany(query, params)
@@ -73,14 +75,14 @@ class WbDataBaseClient:
         logging.info('✅ Данные успешно сохранены!')
 
     @connection_db
-    def clean_db(self, connection=None, cursor=None, **tables):
-        allowed_tables = ['dates', 'products', 'stocks', 'sales']
-
+    def clean_db(self, connection=None, cursor=None, **tables: bool) -> None:
         for table in tables:
-            if table not in allowed_tables:
+            if table not in self.ALLOWED_TABLES_IN_DB:
                 logging.error(
                     'Такой таблицы не существует. '
-                    f'Существующие таблицы в базе данных: {allowed_tables}'
+                    f'Существующие таблицы в базе данных: {
+                        self.ALLOWED_TABLES_IN_DB
+                    }'
                 )
                 raise ValueError('Invalid table name')
             try:

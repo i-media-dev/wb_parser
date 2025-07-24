@@ -32,6 +32,12 @@ def main():
         )
 
         save_to_database(db_client, date_str, formatter_data, formatter_sales)
+        # db_client.clean_db(
+        # dates=True,
+        # products=True,
+        # stocks=True,
+        # sales=True
+        # )
 
         export_data(
             client,
