@@ -4,6 +4,7 @@ import requests
 import logging
 import time
 
+from wb_db import WbDataBaseClient
 from decorators import time_of_function
 from logging_config import setup_logging
 from wb_tools import get_yesterday_date_str, WbAnalyticsClient
@@ -23,6 +24,7 @@ def main():
         return
 
     client = WbAnalyticsClient(token)
+    db_client = WbDataBaseClient()
     date_str = get_yesterday_date_str()
 
     try:
