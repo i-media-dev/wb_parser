@@ -75,4 +75,7 @@ if __name__ == '__main__':
     main()
     execution_time = round(time.time() - start_time, 3)
     print(
-        f'Функция main завершила работу. Время выполнения - {execution_time} сек. или {round(execution_time/60, 2)} мин.')
+        'Функция main завершила работу. '
+        f'Время выполнения - {execution_time} сек. '
+        f'или {round(execution_time/60, 2)} мин.'
+    )

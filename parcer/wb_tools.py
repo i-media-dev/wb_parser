@@ -9,8 +9,7 @@ from datetime import datetime as dt, timedelta
 import mysql.connector
 
 from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
-from db_config import config
-from decorators import time_of_function
+from decorators import connection_db, time_of_function
 from logging_config import setup_logging
 
 setup_logging()
@@ -122,7 +121,10 @@ class WbAnalyticsClient:
                 break
             filtered_result = [
                 sale for sale in result
-                if start_date <= sale['date'][:10] <= date_formatted.strftime('%Y-%m-%d')
+                if (
+                    start_date <= sale['date'][:10]
+                    <= date_formatted.strftime('%Y-%m-%d')
+                )
             ]
             all_data.extend(filtered_result)
             current_date = result[-1]['lastChangeDate']
@@ -304,62 +306,39 @@ class WbAnalyticsClient:
                   for item in data]
         return query, params
 
-    def save_to_db(self, query_data):
-        try:
-            connection = mysql.connector.connect(**config)
-            cursor = connection.cursor()
-            logging.debug('✅ Успешное подключение к базе данных!')
-            query, params = query_data
-            if isinstance(params, list):
-                cursor.executemany(query, params)
-            else:
-                cursor.execute(query, params)
-            connection.commit()
-            logging.info('✅ Данные успешно сохранены!')
-        except mysql.connector.Error as err:
-            logging.error(f'❌ Ошибка: {err}')
-            if 'connection' in locals():
-                connection.rollback()
-        finally:
-            if 'connection' in locals() and connection.is_connected():
-                cursor.close()
-                connection.close()
-                logging.debug('Соединение закрыто.')
+    @connection_db
+    def save_to_db(self, query_data, connection=None, cursor=None):
+        query, params = query_data
+        if isinstance(params, list):
+            cursor.executemany(query, params)
+        else:
+            cursor.execute(query, params)
+        connection.commit()
+        logging.info('✅ Данные успешно сохранены!')
 
-    def clean_db(self, **tables):
-        try:
-            connection = mysql.connector.connect(**config)
-            cursor = connection.cursor()
-            logging.debug('✅ Успешное подключение к базе данных!')
-            allowed_tables = ['dates', 'products', 'stocks', 'sales']
-            for table in tables:
-                if table not in allowed_tables:
-                    logging.error(
-                        'Такой таблицы не существует. '
-                        f'Существующие таблицы в базе данных: {allowed_tables}'
-                    )
-                    raise ValueError(f'Invalid table name')
-                try:
-                    delete_query = f'DELETE FROM {table}'
-                    cursor.execute(delete_query)
-                    connection.commit()
-                    logging.debug(
-                        f'Таблица `{table}` очищена. '
-                        f'Удалено строк: {cursor.rowcount}'
-                    )
-                except mysql.connector.Error as table_err:
-                    logging.error(
-                        f'❌ Ошибка при очистке таблицы {table}: {table_err}')
-                    connection.rollback()
-        except mysql.connector.Error as err:
-            logging.error(f'❌ Ошибка: {err}')
-            if 'connection' in locals():
+    @connection_db
+    def clean_db(self, connection=None, cursor=None, **tables):
+        allowed_tables = ['dates', 'products', 'stocks', 'sales']
+        for table in tables:
+            if table not in allowed_tables:
+                logging.error(
+                    'Такой таблицы не существует. '
+                    f'Существующие таблицы в базе данных: {allowed_tables}'
+                )
+                raise ValueError('Invalid table name')
+            try:
+                delete_query = f'DELETE FROM {table}'
+                cursor.execute(delete_query)
+                connection.commit()
+                logging.debug(
+                    f'Таблица `{table}` очищена. '
+                    f'Удалено строк: {cursor.rowcount}'
+                )
+            except mysql.connector.Error as table_err:
+                logging.error(
+                    f'❌ Ошибка при очистке таблицы {table}: {table_err}'
+                )
                 connection.rollback()
-        finally:
-            if 'connection' in locals() and connection.is_connected():
-                cursor.close()
-                connection.close()
-                logging.debug('Соединение закрыто.')
 
 
 def get_yesterday_date_str() -> str:
