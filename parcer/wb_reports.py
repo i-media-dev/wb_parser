@@ -40,8 +40,18 @@ def main():
         formatter_sales = client.parce_avg_sales(all_sales, date_str)
         formatter_data = client.parce_product_data(all_data, date_str)
 
+        query_date = client.preparing_date_db(date_str)
+        query_product = client.preparing_products_db(formatter_data)
+        query_stock = client.preparing_stocks_db(formatter_data)
+        query_sale = client.preparing_sales_db(formatter_sales)
+
         client.save_to_json(all_sales, date_str, 'avg_sales')
         client.save_to_json(all_data, date_str)
+
+        client.save_to_db(query_date)
+        client.save_to_db(query_product)
+        client.save_to_db(query_stock)
+        client.save_to_db(query_sale)
 
         client.save_to_csv(
             formatter_sales,
