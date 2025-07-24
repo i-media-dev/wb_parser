@@ -1,5 +1,6 @@
-from datetime import datetime as dt
 import logging
+from datetime import datetime as dt
+
 import mysql.connector
 
 from decorators import connection_db
@@ -56,8 +57,9 @@ class WbDataBaseClient:
             ON DUPLICATE KEY UPDATE
             sale = VALUES(sale)
         '''
-        params = [(date, item['артикул'], item['среднее значение'])
-                  for item in data]
+        params = [
+            (date, item['артикул'], item['среднее значение']) for item in data
+        ]
         return query, params
 
     @connection_db

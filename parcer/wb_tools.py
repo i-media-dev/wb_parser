@@ -1,11 +1,12 @@
 import csv
-from collections import defaultdict
+import json
 import logging
 import os
-import json
 import time
-import requests
+from collections import defaultdict
 from datetime import datetime as dt, timedelta
+
+import requests
 
 from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
 from decorators import time_of_function

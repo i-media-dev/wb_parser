@@ -1,13 +1,17 @@
-import os
-from dotenv import load_dotenv
-import requests
 import logging
 import time
 
-from wb_db import WbDataBaseClient
+import requests
+
 from decorators import time_of_function
 from logging_config import setup_logging
-from wb_tools import get_yesterday_date_str, WbAnalyticsClient
+from utils import (
+    export_data,
+    fetch_data,
+    initialize_components,
+    process_data,
+    save_to_database
+)
 
 setup_logging()
 
@@ -15,60 +19,33 @@ setup_logging()
 @time_of_function
 def main():
     '''Основная логика программы.'''
-
-    load_dotenv()
-    token = os.getenv('TOKEN')
-
-    if not token:
-        logging.error('Токен отсутсвует.')
-        return
-
-    client = WbAnalyticsClient(token)
-    db_client = WbDataBaseClient()
-    date_str = get_yesterday_date_str()
-
     try:
-        all_sales = client.get_all_sales_reports(date_str)
-        all_data = client.get_all_stock_reports(
-            start_date=date_str,
-            end_date=date_str
+        token, db_client, client, date_str = initialize_components()
+
+        if not token:
+            logging.error('Токен отсутствует.')
+            return
+        all_sales, all_data = fetch_data(client, date_str)
+
+        formatter_sales, formatter_data = process_data(
+            client, all_sales, all_data, date_str
         )
 
-        logging.info(f'\n✅ Получено записей по остаткам: {len(all_data)}')
-        logging.info(
-            f'\n✅ Получено записей по продажам за 2 недели: {len(all_sales)}'
-        )
+        save_to_database(db_client, date_str, formatter_data, formatter_sales)
 
-        formatter_sales = client.parce_avg_sales(all_sales, date_str)
-        formatter_data = client.parce_product_data(all_data, date_str)
-
-        query_date = db_client.validate_date_db(date_str)
-        query_product = db_client.validate_products_db(formatter_data)
-        query_stock = db_client.validate_stocks_db(formatter_data)
-        query_sale = db_client.validate_sales_db(formatter_sales)
-
-        client.save_to_json(all_sales, date_str, 'avg_sales')
-        client.save_to_json(all_data, date_str)
-
-        db_client.save_to_db(query_date)
-        db_client.save_to_db(query_product)
-        db_client.save_to_db(query_stock)
-        db_client.save_to_db(query_sale)
-
-        client.save_to_csv(
+        export_data(
+            client,
+            date_str,
+            all_data,
+            all_sales,
             formatter_sales,
-            date_str,
-            ['дата', 'артикул', 'среднее значение'],
-            'avg_sales'
+            formatter_data
         )
-        client.save_to_csv(
-            formatter_data,
-            date_str,
-            ['дата', 'наименование', 'артикул', 'остаток']
-        )
-    except requests.RequestException as e:
 
+    except requests.RequestException as e:
         logging.error(f'❌ Ошибка запроса: {e}')
+    except Exception as e:
+        logging.error(f'❌ Неожиданная ошибка: {e}')
 
 
 if __name__ == '__main__':

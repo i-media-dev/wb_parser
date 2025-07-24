@@ -1,7 +1,7 @@
-import os
 import logging
-from logging.handlers import RotatingFileHandler
+import os
 from datetime import datetime as dt
+from logging.handlers import RotatingFileHandler
 
 
 def setup_logging():

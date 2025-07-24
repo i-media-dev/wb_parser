@@ -1,5 +1,6 @@
-import time
 import logging
+import time
+
 import mysql.connector
 
 from db_config import config
