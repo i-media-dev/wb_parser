@@ -12,7 +12,7 @@ setup_logging()
 
 
 def initialize_components() -> tuple:
-    '''
+    """
     Инициализирует и возвращает все необходимые
     компоненты для работы приложения.
 
@@ -25,7 +25,7 @@ def initialize_components() -> tuple:
 
     Returns:
         tuple: Кортеж с инициализированными компонентами.
-    '''
+    """
     load_dotenv()
     token = os.getenv('TOKEN')
     if not token:
@@ -38,7 +38,7 @@ def initialize_components() -> tuple:
 
 
 def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
-    '''
+    """
     Получает данные по продажам и остаткам с API Wildberries за указанную дату.
 
     Функция выполняет два запроса к API:
@@ -54,7 +54,7 @@ def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
         tuple: Кортеж с полученными данными в формате:
             - all_sales (list[dict]): Список словарей с данными о продажах
             - all_data (list[dict]): Список словарей с данными об остатках
-    '''
+    """
     all_sales = client.get_all_sales_reports(date_str)
     all_data = client.get_all_stock_reports(
         start_date=date_str, end_date=date_str)
@@ -65,12 +65,12 @@ def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
 
 
 def process_data(
-    client: WbAnalyticsClient,
+    db_client: WbDataBaseClient,
     all_sales: list,
     all_data: list,
     date_str: str
 ) -> tuple[list[dict], list[dict]]:
-    '''
+    """
     Обрабатывает и форматирует данные перед сохранением в базу данных.
 
     Принимает сырые данные из API Wildberries, применяет к ним парсинг и
@@ -87,9 +87,9 @@ def process_data(
         tuple[list[dict], list[dict]]: Кортеж с отформатированными данными:
             - formatter_sales: Отформатированные данные о продажах
             - formatter_data: Отформатированные данные об остатках
-    '''
-    formatter_sales = client.parce_avg_sales(all_sales, date_str)
-    formatter_data = client.parce_product_data(all_data, date_str)
+    """
+    formatter_sales = db_client.parse_avg_sales(all_sales, date_str)
+    formatter_data = db_client.parse_product_data(all_data, date_str)
     return formatter_sales, formatter_data
 
 
@@ -99,7 +99,7 @@ def save_to_database(
     formatter_data: list[dict],
     formatter_sales: list[dict]
 ) -> None:
-    '''
+    """
     Сохраняет данные в базу данных.
     Args:
         - db_client (WbDataBaseClient): Клиент для работы с базой данных
@@ -107,7 +107,7 @@ def save_to_database(
         - formatter_data (list[dict]): Отформатированные данные об
         - остатках и продуктах
         - formatter_sales (list[dict]): Отформатированные данные о продажах
-    '''
+    """
     queries = [
         db_client.validate_date_db(date_str),
         db_client.validate_products_db(formatter_data),
@@ -123,11 +123,9 @@ def export_data(
     client: WbAnalyticsClient,
     date_str: str,
     all_data: list[dict],
-    all_sales: list[dict],
-    formatter_sales: list[dict],
-    formatter_data: list[dict]
+    all_sales: list[dict]
 ) -> None:
-    '''
+    """
     Экспортирует данные в JSON файлы.
 
     Сохраняет два типа данных в отдельные JSON файлы:
@@ -139,18 +137,6 @@ def export_data(
         - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов
         - all_data (list[dict]): Данные об остатках товаров
         - all_sales (list[dict]): Данные о продажах.
-    '''
+    """
     client.save_to_json(all_sales, date_str, 'avg_sales')
     client.save_to_json(all_data, date_str)
-
-    client.save_to_csv(
-        formatter_sales,
-        date_str,
-        ['дата', 'артикул', 'среднее значение'],
-        'avg_sales'
-    )
-    client.save_to_csv(
-        formatter_data,
-        date_str,
-        ['дата', 'наименование', 'артикул', 'остаток']
-    )

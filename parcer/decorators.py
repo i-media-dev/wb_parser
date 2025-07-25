@@ -10,7 +10,7 @@ setup_logging()
 
 
 def time_of_function(func):
-    '''
+    """
     Декоратор для измерения времени выполнения функции.
 
     Замеряет время выполнения декорируемой функции и логирует результат
@@ -24,7 +24,7 @@ def time_of_function(func):
     Returns:
         callable: Обёрнутая функция с добавленной функциональностью
         замера времени.
-    '''
+    """
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)
@@ -39,7 +39,7 @@ def time_of_function(func):
 
 
 def connection_db(func):
-    '''
+    """
     Декоратор для подключения к базе данных.
 
     Подключается к базе данных, обрабатывает ошибки в процессе подключения,
@@ -53,7 +53,7 @@ def connection_db(func):
     Returns:
         callable: Обёрнутая функция с добавленной функциональностью
         подключения к базе данных и логирования.
-    '''
+    """
     def wrapper(*args, **kwargs):
         connection = None
         cursor = None

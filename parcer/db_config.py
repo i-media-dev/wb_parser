@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-'''
+"""
 Конфигурационные параметры для подключения к MySQL базе данных.
 
 Содержит настройки подключения, которые загружаются из переменных окружения:
@@ -21,7 +21,7 @@ LOGIN='admin'
 PASSWORD='secret'
 HOST='db.example.com'
 DB_NAME='production_db'
-'''
+"""
 config = {
     'user': os.getenv('LOGIN'),
     'password': os.getenv('PASSWORD'),

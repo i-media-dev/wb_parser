@@ -1,9 +1,7 @@
-import csv
 import json
 import logging
 import os
 import time
-from collections import defaultdict
 from datetime import datetime as dt, timedelta
 
 import requests
@@ -12,12 +10,12 @@ from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
 from decorators import time_of_function
 from logging_config import setup_logging
 
-# from pprint import pprint
-
 setup_logging()
 
 
 class WbAnalyticsClient:
+    """Класс, который работает с API Wildberries"""
+
     PRODUCT_DATA_URL = WB_PRODUCT_DATA
     AVG_SALES_URL = WB_AVG_SALES
 
@@ -37,6 +35,10 @@ class WbAnalyticsClient:
             self,
             date: str,
     ) -> dict:
+        """
+        Защищенный метод, формирующий запрос к API Wildberries 
+        без учета пагинации
+        """
         params = {
             "dateFrom": date
         }
@@ -58,6 +60,10 @@ class WbAnalyticsClient:
         offset: int = 0,
         limit: int = DATA_PAGE_LIMIT
     ) -> dict:
+        """
+        Защищенный метод, формирующий запрос к API Wildberries 
+        без учета пагинации
+        """
         payload = {
             "stockType": "",
             "currentPeriod": {
@@ -95,6 +101,10 @@ class WbAnalyticsClient:
 
     @time_of_function
     def get_all_sales_reports(self, date: str) -> list:
+        """
+        Метод, формирующий запрос к API Wildberries 
+        с учетом пагинации
+        """
         date_formatted = dt.strptime(date, "%Y-%m-%d").date()
         start_date = (
             date_formatted - timedelta(days=TWO_WEEK)
@@ -141,6 +151,10 @@ class WbAnalyticsClient:
         end_date: str,
         limit: int = DATA_PAGE_LIMIT
     ) -> list:
+        """
+        Метод, формирующий запрос к API Wildberries 
+        с учетом пагинации
+        """
         offset = 0
         all_data = []
 
@@ -171,38 +185,6 @@ class WbAnalyticsClient:
         logging.debug('Функция завершила работу')
         return all_data
 
-    def parce_product_data(self, data: list, date_str: str) -> list:
-        stocks = []
-
-        for item in data:
-            stocks.append(
-                {
-                    'дата': date_str,
-                    'наименование': item.get('name', '').strip('""'),
-                    'артикул': item.get('nmID', ''),
-                    'остаток': item.get('metrics', {}).get('stockCount', 0)
-                }
-            )
-        return stocks
-
-    def parce_avg_sales(self, data: list, date_str: str) -> list:
-        avg_sales = []
-        sales_by_article = defaultdict(int)
-
-        for item in data:
-            if item.get('isRealization') and not item.get('isCancel'):
-                article = item['nmId']
-                sales_by_article[article] += 1
-
-        for article, total_sales in sales_by_article.items():
-            avg_per_day = total_sales // TWO_WEEK
-            avg_sales.append({
-                'дата': date_str,
-                'артикул': article,
-                'среднее значение': avg_per_day
-            })
-        return avg_sales
-
     @staticmethod
     def _get_filename(
         format: str,
@@ -210,6 +192,7 @@ class WbAnalyticsClient:
         prefix: str = 'stocks',
         folder: str = 'data'
     ) -> str:
+        """Защищенный метод создает директорию и настраиваемое имя файла."""
         os.makedirs(folder, exist_ok=True)
         filename = os.path.join(folder, f'{prefix}_{date_str}.{format}')
         return filename
@@ -222,38 +205,11 @@ class WbAnalyticsClient:
         prefix: str = 'stocks',
         folder: str = 'data'
     ) -> None:
+        """Метод сохраняет данные в файл формата json"""
         logging.debug('Сохранение файла...')
         filename = WbAnalyticsClient._get_filename(
             'json', date_str, prefix, folder)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        logging.info(f'✅ Данные сохранены в {filename}')
-        logging.debug('Файл сохранен.')
-
-    @time_of_function
-    def save_to_csv(
-        self,
-        data: list,
-        date_str: str,
-        fieldnames: list,
-        prefix: str = 'stocks',
-        folder: str = 'data'
-    ) -> None:
-        logging.debug('Сохранение файла...')
-        filename = WbAnalyticsClient._get_filename(
-            'csv', date_str, prefix, folder)
-        with open(
-            filename,
-            'w',
-            encoding='utf-8',
-            newline=''
-        ) as f:
-            writer = csv.DictWriter(
-                f,
-                fieldnames=fieldnames,
-                delimiter=';'
-            )
-            writer.writeheader()
-            writer.writerows(data)
         logging.info(f'✅ Данные сохранены в {filename}')
         logging.debug('Файл сохранен.')

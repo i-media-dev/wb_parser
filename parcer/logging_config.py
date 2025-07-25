@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 
 
 def setup_logging():
-    '''
+    """
     Настройка логирования приложения.
 
     Создает директорию для логов (если не существует) и настраивает:
@@ -17,7 +17,7 @@ def setup_logging():
 
     Логи сохраняются в папку 'logs' с именем файла в формате ГГГГ-ММ-ДД.log.
     Автоматически создает папку логов, если она не существует.
-    '''
+    """
     log_dir = 'logs'
     os.makedirs(log_dir, exist_ok=True)
 

@@ -18,21 +18,21 @@ setup_logging()
 
 @time_of_function
 def main():
-    '''
+    """
     Основная логика программы.
     Выполняет последовательность операций:
     1. Инициализация компонентов (БД, API клиент)
     2. Получение данных из API Wildberries
     3. Обработка и форматирование данных
     4. Сохранение данных в базу данных
-    '''
+    """
     try:
         db_client, client, date_str = initialize_components()
 
         all_sales, all_data = fetch_data(client, date_str)
 
         formatter_sales, formatter_data = process_data(
-            client, all_sales, all_data, date_str
+            db_client, all_sales, all_data, date_str
         )
 
         save_to_database(db_client, date_str, formatter_data, formatter_sales)
@@ -41,9 +41,7 @@ def main():
             client,
             date_str,
             all_data,
-            all_sales,
-            formatter_sales,
-            formatter_data
+            all_sales
         )
 
     except requests.RequestException as e:
