@@ -12,6 +12,8 @@ from constants import DATA_PAGE_LIMIT, TWO_WEEK, WB_AVG_SALES, WB_PRODUCT_DATA
 from decorators import time_of_function
 from logging_config import setup_logging
 
+# from pprint import pprint
+
 setup_logging()
 
 

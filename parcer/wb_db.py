@@ -64,7 +64,12 @@ class WbDataBaseClient:
         return query, params
 
     @connection_db
-    def save_to_db(self, query_data: tuple, connection=None, cursor=None) -> None:
+    def save_to_db(
+        self,
+        query_data: tuple,
+        connection=None,
+        cursor=None
+    ) -> None:
         query, params = query_data
         if isinstance(params, list):
             cursor.executemany(query, params)

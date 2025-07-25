@@ -18,13 +18,17 @@ setup_logging()
 
 @time_of_function
 def main():
-    '''Основная логика программы.'''
+    '''
+    Основная логика программы.
+    Выполняет последовательность операций:
+    1. Инициализация компонентов (БД, API клиент)
+    2. Получение данных из API Wildberries
+    3. Обработка и форматирование данных
+    4. Сохранение данных в базу данных
+    '''
     try:
-        token, db_client, client, date_str = initialize_components()
+        db_client, client, date_str = initialize_components()
 
-        if not token:
-            logging.error('Токен отсутствует.')
-            return
         all_sales, all_data = fetch_data(client, date_str)
 
         formatter_sales, formatter_data = process_data(
@@ -32,12 +36,6 @@ def main():
         )
 
         save_to_database(db_client, date_str, formatter_data, formatter_sales)
-        # db_client.clean_db(
-        # dates=True,
-        # products=True,
-        # stocks=True,
-        # sales=True
-        # )
 
         export_data(
             client,
