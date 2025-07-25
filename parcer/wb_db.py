@@ -23,8 +23,7 @@ class WbDataBaseClient:
         query = '''
             INSERT INTO dates (full_date, day, month, year, day_of_week)
             VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-            day_of_week = VALUES(day_of_week)
+            ON DUPLICATE KEY UPDATE id = id
         '''
         return query, (date, day, month, year, weekday)
 

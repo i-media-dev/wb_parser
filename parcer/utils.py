@@ -11,7 +11,7 @@ from wb_tools import WbAnalyticsClient
 setup_logging()
 
 
-def initialize_components():
+def initialize_components() -> tuple:
     '''Инициализирует все необходимые компоненты.'''
     load_dotenv()
     token = os.getenv('TOKEN')
@@ -38,7 +38,7 @@ def process_data(
     all_data: list,
     date_str: str
 ) -> tuple:
-    '''Обрабатывает данные перед сохранением в бд.'''
+    '''Обрабатывает данные перед сохранением в базу данных.'''
     formatter_sales = client.parce_avg_sales(all_sales, date_str)
     formatter_data = client.parce_product_data(all_data, date_str)
     return formatter_sales, formatter_data
