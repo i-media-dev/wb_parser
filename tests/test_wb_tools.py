@@ -3,7 +3,7 @@ import pytest
 import requests
 from unittest.mock import MagicMock, patch
 
-from wb_tools import WbAnalyticsClient
+from parser.wb_tools import WbAnalyticsClient
 
 
 class TestWbAnalyticsClient:

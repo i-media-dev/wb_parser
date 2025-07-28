@@ -1,7 +1,7 @@
 import pytest
 
-from wb_tools import WbAnalyticsClient
-from wb_db import WbDataBaseClient
+from parser.wb_tools import WbAnalyticsClient
+from parser.wb_db import WbDataBaseClient
 
 
 @pytest.fixture

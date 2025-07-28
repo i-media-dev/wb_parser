@@ -3,8 +3,8 @@ import time
 
 import mysql.connector
 
-from db_config import config
-from logging_config import setup_logging
+from parser.db_config import config
+from parser.logging_config import setup_logging
 
 setup_logging()
 

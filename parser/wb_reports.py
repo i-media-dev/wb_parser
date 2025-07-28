@@ -3,9 +3,9 @@ import time
 
 import requests
 
-from decorators import time_of_function
-from logging_config import setup_logging
-from utils import (
+from parser.decorators import time_of_function
+from parser.logging_config import setup_logging
+from parser.utils import (
     export_data,
     fetch_data,
     initialize_components,

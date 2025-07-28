@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 from unittest.mock import patch, MagicMock
 
-from constants import TWO_WEEK
+from parser.constants import TWO_WEEK
 
 
 class TestWbDataBaseClient:
