@@ -100,7 +100,7 @@ class WbAnalyticsClient:
         return response.json()
 
     @time_of_function
-    def get_all_sales_reports(self, date: str) -> list:
+    def get_all_sales_reports(self, date: str) -> list[dict]:
         """
         Метод, формирующий запрос к API Wildberries
         с учетом пагинации.
@@ -150,7 +150,7 @@ class WbAnalyticsClient:
         start_date: str,
         end_date: str,
         limit: int = DATA_PAGE_LIMIT
-    ) -> list:
+    ) -> list[dict]:
         """
         Метод, формирующий запрос к API Wildberries
         с учетом пагинации.
