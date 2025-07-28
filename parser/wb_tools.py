@@ -14,7 +14,7 @@ setup_logging()
 
 
 class WbAnalyticsClient:
-    """Класс, который работает с API Wildberries"""
+    """Класс, который работает с API Wildberries."""
 
     PRODUCT_DATA_URL = WB_PRODUCT_DATA
     AVG_SALES_URL = WB_AVG_SALES
@@ -36,8 +36,8 @@ class WbAnalyticsClient:
             date: str,
     ) -> dict:
         """
-        Защищенный метод, формирующий запрос к API Wildberries 
-        без учета пагинации
+        Защищенный метод, формирующий запрос к API Wildberries
+        без учета пагинации.
         """
         params = {
             "dateFrom": date
@@ -61,8 +61,8 @@ class WbAnalyticsClient:
         limit: int = DATA_PAGE_LIMIT
     ) -> dict:
         """
-        Защищенный метод, формирующий запрос к API Wildberries 
-        без учета пагинации
+        Защищенный метод, формирующий запрос к API Wildberries
+        без учета пагинации.
         """
         payload = {
             "stockType": "",
@@ -102,8 +102,8 @@ class WbAnalyticsClient:
     @time_of_function
     def get_all_sales_reports(self, date: str) -> list:
         """
-        Метод, формирующий запрос к API Wildberries 
-        с учетом пагинации
+        Метод, формирующий запрос к API Wildberries
+        с учетом пагинации.
         """
         date_formatted = dt.strptime(date, "%Y-%m-%d").date()
         start_date = (
@@ -152,8 +152,8 @@ class WbAnalyticsClient:
         limit: int = DATA_PAGE_LIMIT
     ) -> list:
         """
-        Метод, формирующий запрос к API Wildberries 
-        с учетом пагинации
+        Метод, формирующий запрос к API Wildberries
+        с учетом пагинации.
         """
         offset = 0
         all_data = []
@@ -205,7 +205,7 @@ class WbAnalyticsClient:
         prefix: str = 'stocks',
         folder: str = 'data'
     ) -> None:
-        """Метод сохраняет данные в файл формата json"""
+        """Метод сохраняет данные в файл формата json."""
         logging.debug('Сохранение файла...')
         filename = WbAnalyticsClient._get_filename(
             'json', date_str, prefix, folder)

@@ -88,7 +88,7 @@ class WbDataBaseClient:
     def validate_products_db(self, data: list) -> tuple:
         """
         Метод принимает обработанные данные,
-        полученные из метода parse_product_data. 
+        полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         query = '''
@@ -103,7 +103,7 @@ class WbDataBaseClient:
     def validate_stocks_db(self, data: list) -> tuple:
         """
         Метод принимает обработанные данные,
-        полученные из метода parse_product_data. 
+        полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
@@ -120,7 +120,7 @@ class WbDataBaseClient:
     def validate_sales_db(self, data: list) -> tuple:
         """
         Метод принимает обработанные данные,
-        полученные из метода parse_avg_sales. 
+        полученные из метода parse_avg_sales.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()

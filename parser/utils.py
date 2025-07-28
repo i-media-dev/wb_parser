@@ -17,11 +17,11 @@ def initialize_components() -> tuple:
     компоненты для работы приложения.
 
     Выполняет следующие действия:
-    1. Загружает переменные окружения из .env файла
-    2. Получает токен авторизации из переменных окружения
-    3. Создает клиент для работы с API аналитики Wildberries
-    4. Инициализирует клиент базы данных
-    5. Формирует строку с датой за вчерашний день в формате ГГГГ-ММ-ДД
+    1. Загружает переменные окружения из .env файла.
+    2. Получает токен авторизации из переменных окружения.
+    3. Создает клиент для работы с API аналитики Wildberries.
+    4. Инициализирует клиент базы данных.
+    5. Формирует строку с датой за вчерашний день в формате ГГГГ-ММ-ДД.
 
     Returns:
         tuple: Кортеж с инициализированными компонентами.
@@ -42,18 +42,18 @@ def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
     Получает данные по продажам и остаткам с API Wildberries за указанную дату.
 
     Функция выполняет два запроса к API:
-    1. Получение отчетов по продажам за указанную дату
-    2. Получение отчетов по остаткам на указанную дату
+    1. Получение отчетов по продажам за указанную дату.
+    2. Получение отчетов по остаткам на указанную дату.
 
     Args:
         - client (WbAnalyticsClient): Клиент для работы
-        с API Wildberries Analytics
-        - date_str (str): Дата в формате 'YYYY-MM-DD' для получения отчетов
+        с API Wildberries Analytics.
+        - date_str (str): Дата в формате 'YYYY-MM-DD' для получения отчетов.
 
     Returns:
         tuple: Кортеж с полученными данными в формате:
-            - all_sales (list[dict]): Список словарей с данными о продажах
-            - all_data (list[dict]): Список словарей с данными об остатках
+            - all_sales (list[dict]): Список словарей с данными о продажах.
+            - all_data (list[dict]): Список словарей с данными об остатках.
     """
     all_sales = client.get_all_sales_reports(date_str)
     all_data = client.get_all_stock_reports(
@@ -78,15 +78,15 @@ def process_data(
     подготавливая данные для записи в БД.
 
     Args:
-        - client (WbAnalyticsClient): Клиент для работы с API Wildberries
-        - all_sales (list[dict]): Список словарей с сырыми данными о продажах
-        - all_data (list[dict]): Список словарей с сырыми данными об остатках
-        - date_str (str): Дата в формате 'YYYY-MM-DD' для обработки данных
+        - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
+        - all_sales (list[dict]): Список словарей с сырыми данными о продажах.
+        - all_data (list[dict]): Список словарей с сырыми данными об остатках.
+        - date_str (str): Дата в формате 'YYYY-MM-DD' для обработки данных.
 
     Returns:
         tuple[list[dict], list[dict]]: Кортеж с отформатированными данными:
-            - formatter_sales: Отформатированные данные о продажах
-            - formatter_data: Отформатированные данные об остатках
+            - formatter_sales: Отформатированные данные о продажах.
+            - formatter_data: Отформатированные данные об остатках.
     """
     formatter_sales = db_client.parse_avg_sales(all_sales, date_str)
     formatter_data = db_client.parse_product_data(all_data, date_str)
@@ -102,11 +102,11 @@ def save_to_database(
     """
     Сохраняет данные в базу данных.
     Args:
-        - db_client (WbDataBaseClient): Клиент для работы с базой данных
-        - date_str (str): Дата в формате 'YYYY-MM-DD' для сохранения
+        - db_client (WbDataBaseClient): Клиент для работы с базой данных.
+        - date_str (str): Дата в формате 'YYYY-MM-DD' для сохранения.
         - formatter_data (list[dict]): Отформатированные данные об
-        - остатках и продуктах
-        - formatter_sales (list[dict]): Отформатированные данные о продажах
+        остатках и продуктах.
+        - formatter_sales (list[dict]): Отформатированные данные о продажах.
     """
     queries = [
         db_client.validate_date_db(date_str),
@@ -129,13 +129,13 @@ def export_data(
     Экспортирует данные в JSON файлы.
 
     Сохраняет два типа данных в отдельные JSON файлы:
-    1. Данные о продажах (с префиксом 'avg_sales')
-    2. Данные об остатках товаров
+    1. Данные о продажах (с префиксом 'avg_sales').
+    2. Данные об остатках товаров.
 
     Args:
-        - client (WbAnalyticsClient): Клиент для работы с API Wildberries
-        - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов
-        - all_data (list[dict]): Данные об остатках товаров
+        - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
+        - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов.
+        - all_data (list[dict]): Данные об остатках товаров.
         - all_sales (list[dict]): Данные о продажах.
     """
     client.save_to_json(all_sales, date_str, 'avg_sales')
