@@ -1,12 +1,11 @@
 import logging
 import os
 from datetime import datetime as dt, timedelta
-
 from dotenv import load_dotenv
-
 from parser.logging_config import setup_logging
 from parser.wb_db import WbDataBaseClient
 from parser.wb_tools import WbAnalyticsClient
+
 
 setup_logging()
 

@@ -3,9 +3,7 @@ import logging
 import os
 import time
 from datetime import datetime as dt, timedelta
-
 import requests
-
 from parser.constants import (
     DATA_PAGE_LIMIT,
     TWO_WEEK,
@@ -14,6 +12,7 @@ from parser.constants import (
 )
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
+
 
 setup_logging()
 
@@ -139,8 +138,9 @@ class WbAnalyticsClient:
             filtered_result = [
                 sale for sale in result
                 if (
-                    start_date <= sale['date'][:10]
-                    <= date_formatted.strftime('%Y-%m-%d')
+                    start_date <= sale['date'][:10] <= date_formatted.strftime(
+                        '%Y-%m-%d'
+                    )
                 )
             ]
             all_data.extend(filtered_result)

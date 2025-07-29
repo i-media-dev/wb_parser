@@ -1,8 +1,6 @@
 import logging
 import time
-
 import requests
-
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.utils import (
@@ -12,6 +10,7 @@ from parser.utils import (
     process_data,
     save_to_database
 )
+
 
 setup_logging()
 
@@ -58,5 +57,5 @@ if __name__ == '__main__':
     print(
         'Функция main завершила работу. '
         f'Время выполнения - {execution_time} сек. '
-        f'или {round(execution_time/60, 2)} мин.'
+        f'или {round(execution_time / 60, 2)} мин.'
     )

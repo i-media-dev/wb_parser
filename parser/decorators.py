@@ -2,7 +2,6 @@ import logging
 import time
 
 import mysql.connector
-
 from parser.db_config import config
 from parser.logging_config import setup_logging
 
@@ -32,7 +31,7 @@ def time_of_function(func):
         logging.info(
             f'Функция {func.__name__} завершила работу. '
             f'Время выполнения - {execution_time} сек. '
-            f'или {round(execution_time/60, 2)} мин.'
+            f'или {round(execution_time / 60, 2)} мин.'
         )
         return result
     return wrapper

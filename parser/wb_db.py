@@ -1,12 +1,11 @@
 import logging
 from collections import defaultdict
 from datetime import datetime as dt
-
 import mysql.connector
-
 from parser.constants import ALLOWED_TABLES, TWO_WEEK
 from parser.decorators import connection_db
 from parser.logging_config import setup_logging
+
 
 setup_logging()
 
