@@ -18,7 +18,9 @@ def setup_logging():
     Логи сохраняются в папку 'logs' с именем файла в формате ГГГГ-ММ-ДД.log.
     Автоматически создает папку логов, если она не существует.
     """
-    log_dir = 'logs'
+    log_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'logs')
+    )
     os.makedirs(log_dir, exist_ok=True)
 
     log_filename = dt.now().strftime('%Y-%m-%d.log')

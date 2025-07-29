@@ -1,0 +1,13 @@
+wbenv/
+venv/
+.venv/
+.git/
+.gitignore
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+.idea/
+.env

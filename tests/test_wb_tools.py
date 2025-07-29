@@ -1,7 +1,7 @@
 import json
 import pytest
 import requests
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from parser.wb_tools import WbAnalyticsClient
 
@@ -23,6 +23,17 @@ class TestWbAnalyticsClient:
         )
 
         result = wb_client._get_sale_report(test_date)
+        assert result == mock_response
+
+    def test_get_stock_report_success(self, wb_client, requests_mock):
+        mock_response = {'data': {'items': [{'test': 'data'}]}}
+
+        requests_mock.post(
+            wb_client.PRODUCT_DATA_URL,
+            json=mock_response,
+            status_code=200
+        )
+        result = wb_client._get_stock_report('2025-07-01', '2025-07-10')
         assert result == mock_response
 
     def test_get_sale_report_429_error(self, wb_client, requests_mock):
@@ -52,20 +63,10 @@ class TestWbAnalyticsClient:
             )
         assert exc_info.value.response.status_code == 429
 
-    def test_get_stock_report_success(self, wb_client):
-        with patch('requests.post') as mock_post:
-            mock_response = MagicMock()
-            mock_response.json.return_value = {
-                'data': {'items': [{'test': 'data'}]}}
-            mock_response.raise_for_status.return_value = None
-            mock_post.return_value = mock_response
-
-            result = wb_client._get_stock_report('2025-07-01', '2025-07-10')
-            assert result == {'data': {'items': [{'test': 'data'}]}}
-
     def test_get_all_sales_reports(self, wb_client):
-        mock_data = [{"nmId": 123, "date": "2025-07-10",
-                      "lastChangeDate": "2025-07-10"}]
+        mock_data = [
+            {"nmId": 123, "date": "2025-07-10", "lastChangeDate": "2025-07-10"}
+        ]
         mock_empty = []
 
         with patch.object(
