@@ -1,0 +1,1 @@
+0 0 * * * root cd /app && python -m parser.wb_reports >> /var/log/cron.log 2>&1

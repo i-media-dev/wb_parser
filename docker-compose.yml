@@ -6,4 +6,5 @@ services:
     env_file: .env
     volumes:
       - ./logs:/app/logs
+      - ./cron_logs:/var/log
     restart: unless-stopped
