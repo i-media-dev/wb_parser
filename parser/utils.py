@@ -26,7 +26,7 @@ def initialize_components() -> tuple:
         tuple: Кортеж с инициализированными компонентами.
     """
     load_dotenv()
-    token = os.getenv('TOKEN')
+    token = os.getenv('TOKEN_WB_LOWEIS')
     if not token:
         logging.error('Токен отсутствует или устарел.')
         raise ValueError('Токен отсутствует или устарел.')

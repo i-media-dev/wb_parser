@@ -23,11 +23,11 @@ HOST='db.example.com'
 DB_NAME='production_db'
 """
 config = {
-    'user': os.getenv('LOGIN'),
-    'password': os.getenv('PASSWORD'),
-    'host': os.getenv('HOST'),
-    'database': os.getenv('DB_NAME'),
-    'port': 3306,
+    'user': os.getenv('DB_LOGIN_LOWEIS'),
+    'password': os.getenv('DB_PASSWORD_LOWEIS'),
+    'host': os.getenv('DB_HOST_LOWEIS'),
+    'database': os.getenv('DB_NAME_LOWEIS'),
+    'port': os.getenv('DB_PORT_LOWEIS'),
     'connection_timeout': 10,
     'use_pure': True
 }
