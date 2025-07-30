@@ -24,6 +24,11 @@ class WbAnalyticsClient:
     AVG_SALES_URL = WB_AVG_SALES
 
     def __init__(self, token: str):
+        if not token:
+
+            logging.error('Токен не действителен или отсутствует.')
+
+            raise ValueError('API token is required')
         self.token = token
         self.headers = {
             "Authorization": self.token,
