@@ -185,12 +185,12 @@ class WbAnalyticsClient:
         logging.debug('Функция завершила работу')
         return all_data
 
-    @time_of_function
-    def get_all_data_for_period(self, start_date, end_date):
-        get_all_sales_reports()
-        get_all_stock_reports()
+    # @time_of_function
+    # def get_all_data_for_period(self, start_date, end_date):
+    #     get_all_sales_reports()
+    #     get_all_stock_reports()
 
-        pass
+    #     pass
 
     @staticmethod
     def _get_filename(
