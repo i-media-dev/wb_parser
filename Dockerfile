@@ -7,8 +7,4 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-COPY crontab /etc/cron.d/wb-parser-cron
-RUN chmod 0644 /etc/cron.d/wb-parser-cron && \
-    crontab /etc/cron.d/wb-parser-cron && \
-    touch /var/log/cron.log
-CMD cron && tail -f /var/log/cron.log
+CMD ["python", "-m", "parser.wb_reports"]
