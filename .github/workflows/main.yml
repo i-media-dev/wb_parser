@@ -70,4 +70,4 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /home/egor/project/wb/
-          docker compose -f docker-compose.yml pull
+          docker compose docker-compose.yml pull
