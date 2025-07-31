@@ -60,7 +60,7 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         key: ${{ secrets.SSH_KEY }}
         source: "docker-compose.yml"
-        target: "/project/wb"
+        target: "/home/egor/project/wb/"
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
       with:
@@ -69,5 +69,5 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd /project/wb
+          cd /home/egor/project/wb/
           sudo docker compose -f docker-compose.yml pull
