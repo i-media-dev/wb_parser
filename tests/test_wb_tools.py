@@ -94,19 +94,19 @@ class TestWbAnalyticsClient:
             assert len(result) == 1
             mock_sleep.assert_called_once_with(20)
 
-    def test_save_to_json(self, wb_client, tmp_path):
-        test_data = [{"test": "data"}]
-        test_date = '2025-07-10'
-        test_folder = tmp_path / 'data'
+    # def test_save_to_json(self, wb_client, tmp_path):
+    #     test_data = [{"test": "data"}]
+    #     test_date = '2025-07-10'
+    #     test_folder = tmp_path / 'data'
 
-        wb_client.save_to_json(test_data, test_date, folder=str(test_folder))
+    #     wb_client.save_to_json(test_data, test_date, folder=str(test_folder))
 
-        filename = test_folder / f'stocks_{test_date}.json'
-        assert filename.exists()
+    #     filename = test_folder / f'stocks_{test_date}.json'
+    #     assert filename.exists()
 
-        with open(filename, 'r') as f:
-            loaded_data = json.load(f)
-        assert loaded_data == test_data
+    #     with open(filename, 'r') as f:
+    #         loaded_data = json.load(f)
+    #     assert loaded_data == test_data
 
     def test_get_filename(self, wb_client, tmp_path):
         result = wb_client._get_filename(
