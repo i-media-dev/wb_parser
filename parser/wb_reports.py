@@ -4,7 +4,7 @@ import requests
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.utils import (
-    export_data,
+    # export_data,
     fetch_data,
     initialize_components,
     process_data,
@@ -36,12 +36,12 @@ def main():
 
         save_to_database(db_client, date_str, formatter_data, formatter_sales)
 
-        export_data(
-            client,
-            date_str,
-            all_data,
-            all_sales
-        )
+        # export_data(
+        #     client,
+        #     date_str,
+        #     all_data,
+        #     all_sales
+        # )
 
     except requests.RequestException as e:
         logging.error(f'❌ Ошибка запроса: {e}')

@@ -118,29 +118,37 @@ def save_to_database(
         db_client.save_to_db(query)
 
 
-def export_data(
-    client: WbAnalyticsClient,
-    date_str: str,
-    all_data: list[dict],
-    all_sales: list[dict]
-) -> None:
-    """
-    Экспортирует данные в JSON файлы.
+# def export_data(
+#     client: WbAnalyticsClient,
+#     date_str: str,
+#     all_data: list[dict],
+#     all_sales: list[dict]
+# ) -> None:
+#     """
+#     Отладочная функция.
+#     Экспортирует данные в JSON файлы.
 
-    Сохраняет два типа данных в отдельные JSON файлы:
-    1. Данные о продажах (с префиксом 'avg_sales').
-    2. Данные об остатках товаров.
+#     Сохраняет два типа данных в отдельные JSON файлы:
+#     1. Данные о продажах (с префиксом 'avg_sales').
+#     2. Данные об остатках товаров.
 
-    Args:
-        - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
-        - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов.
-        - all_data (list[dict]): Данные об остатках товаров.
-        - all_sales (list[dict]): Данные о продажах.
-    """
-    client.save_to_json(all_sales, date_str, 'avg_sales')
-    client.save_to_json(all_data, date_str)
+#     Args:
+#         - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
+#         - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов.
+#         - all_data (list[dict]): Данные об остатках товаров.
+#         - all_sales (list[dict]): Данные о продажах.
+#     """
+#     client.save_to_json(all_sales, date_str, 'avg_sales')
+#     client.save_to_json(all_data, date_str)
 
-# def all_data_for_period(func_all_data, start_date, end_date):
-#     days = (end_date - start_date).days + 1
-#     date_list = [start_date + timedelta(days=i) for i in range(days)]
-#     return date_list
+# def all_data_for_period(client, db_client, start_date, end_date):
+#     fdate_start = dt.strptime(start_date, '%Y-%m-%d').date()
+#     fdate_end = dt.strptime(end_date, '%Y-%m-%d').date()
+#     days = (fdate_end - fdate_start).days + 1
+#     date_list = [fdate_start + timedelta(days=i) for i in range(days)]
+#     date_str_list = [d.strftime('%Y-%m-%d') for d in date_list]
+#     for date in date_str_list:
+#         stocks = client.get_all_stock_reports(start_date=date, end_date=date)
+#         slaes = client.get_all_sales__reports(date=date)
+#         parse_sales = db_client.parse_avg_sales()
+#         parse_products = db_client.parse_product_data()
