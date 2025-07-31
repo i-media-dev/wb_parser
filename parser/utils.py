@@ -139,3 +139,8 @@ def export_data(
     """
     client.save_to_json(all_sales, date_str, 'avg_sales')
     client.save_to_json(all_data, date_str)
+
+# def all_data_for_period(func_all_data, start_date, end_date):
+#     days = (end_date - start_date).days + 1
+#     date_list = [start_date + timedelta(days=i) for i in range(days)]
+#     return date_list
