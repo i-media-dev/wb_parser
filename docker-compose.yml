@@ -3,6 +3,7 @@ version: '3.8'
 services:
   wb_parser:
     image: imediadev/wb_parser
+    user: "1002:1002"
     env_file: .env
     volumes:
       - ./logs:/app/logs
