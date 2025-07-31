@@ -59,6 +59,9 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         key: ${{ secrets.SSH_KEY }}
+        port: 22
+        timeout: 60s
+        verbose: true
         source: "docker-compose.yml"
         target: "/project/wb"
     - name: Executing remote ssh commands to deploy
