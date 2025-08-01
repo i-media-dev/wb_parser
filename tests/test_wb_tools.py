@@ -2,7 +2,6 @@
 import pytest
 import requests
 from unittest.mock import patch
-
 from parser.wb_tools import WbAnalyticsClient
 
 
