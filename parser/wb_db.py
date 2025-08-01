@@ -16,8 +16,8 @@ class WbDataBaseClient:
 
     ALLOWED_TABLES_IN_DB = ALLOWED_TABLES
 
-    @connection_db
     @staticmethod
+    @connection_db
     def _create_table_if_not_exist(
         type_table: str,
         type_data: str,
