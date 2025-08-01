@@ -138,7 +138,6 @@ class WbDataBaseClient:
                 logging.error(
                     f'❌ Ошибка создания таблицы: {table_err}'
                 )
-                connection.rollback()
         else:
             return table_name
 
