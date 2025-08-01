@@ -1,5 +1,4 @@
 import pytest
-
 from parser.wb_tools import WbAnalyticsClient
 from parser.wb_db import WbDataBaseClient
 
