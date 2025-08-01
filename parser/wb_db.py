@@ -4,6 +4,7 @@ from datetime import datetime as dt
 import mysql.connector
 from parser.constants import ALLOWED_TABLES, TWO_WEEK
 from parser.decorators import connection_db
+from parser.exceptions import RefTableError, TypeDataError
 from parser.logging_config import setup_logging
 
 
@@ -14,6 +15,132 @@ class WbDataBaseClient:
     """Класс, который работает с базой данных."""
 
     ALLOWED_TABLES_IN_DB = ALLOWED_TABLES
+
+    @connection_db
+    @staticmethod
+    def _create_table_if_not_exist(
+        type_table: str,
+        type_data: str,
+        shop_name: str,
+        ref_dates_table: str = '',
+        ref_products_table: str = '',
+        connection=None,
+        cursor=None
+
+    ):
+        """
+        Защищенный метод создает таблицу в базе данных если ее не существует.
+        Если таблица есть в базе данных возварщает ее имя.
+        """
+        table_name = f'{type_table}_{type_data}_{shop_name}'
+        if table_name not in WbDataBaseClient.ALLOWED_TABLES_IN_DB:
+            try:
+                if type_data == 'dates':
+                    create_table_query = f'''
+                        CREATE TABLE IF NOT EXISTS {table_name} (
+                        `id` int(11) NOT NULL AUTO_INCREMENT,
+                        `full_date` date NOT NULL,
+                        `day` int(11) NOT NULL,
+                        `month` int(11) NOT NULL,
+                        `year` int(11) NOT NULL,
+                        `day_of_week` int(11) NOT NULL,
+                        PRIMARY KEY (`id`),
+                        UNIQUE KEY `unique_date_combo` (
+                        `full_date`,`day`,`month`,`year`
+                        ),
+                        KEY `full_date` (`full_date`),
+                        KEY `year` (`year`,`month`),
+                        KEY `year_2` (`year`,`month`,`day`)
+                    ) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8;
+                    '''
+                    cursor.execute(create_table_query)
+                    logging.info(f'Таблица {table_name} успешно создана')
+                    WbDataBaseClient.ALLOWED_TABLES_IN_DB.append(table_name)
+                    return table_name
+                if type_data == 'products':
+                    create_table_query = f'''
+                        CREATE TABLE IF NOT EXISTS {table_name} (
+                        `id` int(11) NOT NULL AUTO_INCREMENT,
+                        `article` bigint(20) unsigned NOT NULL,
+                        `name` varchar(255) NOT NULL,
+                        PRIMARY KEY (`id`),
+                        UNIQUE KEY `article` (`article`),
+                        FULLTEXT KEY `name` (`name`)
+                    ) ENGINE=InnoDB AUTO_INCREMENT=247 DEFAULT CHARSET=utf8;
+                    '''
+                    cursor.execute(create_table_query)
+                    logging.info(f'Таблица {table_name} успешно создана')
+                    WbDataBaseClient.ALLOWED_TABLES_IN_DB.append(table_name)
+                    return table_name
+                if type_data == 'sales':
+                    if ref_products_table != '' and ref_dates_table != '':
+                        create_table_query = f'''
+                            CREATE TABLE IF NOT EXISTS {table_name} (
+                            `date` date NOT NULL,
+                            `article` bigint(20) unsigned NOT NULL,
+                            `sale` int(11) DEFAULT '0',
+                            PRIMARY KEY (`date`,`article`),
+                            KEY `article` (`article`),
+                            CONSTRAINT `fk_sales_date` FOREIGN KEY (
+                            `date`
+                            ) REFERENCES {ref_dates_table} (
+                            `full_date`
+                            ) ON DELETE CASCADE ON UPDATE CASCADE,
+                            CONSTRAINT `fk_sales_product` FOREIGN KEY (
+                            `article`
+                            ) REFERENCES {ref_products_table} (
+                            `article`
+                            ) ON UPDATE CASCADE
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        '''
+                        cursor.execute(create_table_query)
+                        logging.info(f'Таблица {table_name} успешно создана')
+                        WbDataBaseClient.ALLOWED_TABLES_IN_DB.append(
+                            table_name)
+                        return table_name
+                    else:
+                        logging.error('Отсутствует таблицы для ссылки')
+                        raise RefTableError
+                if type_data == 'stocks':
+                    if ref_products_table != '' and ref_dates_table != '':
+                        create_table_query = f'''
+                            CREATE TABLE IF NOT EXISTS {table_name} (
+                            `date` date NOT NULL,
+                            `article` bigint(20) unsigned NOT NULL,
+                            `stock` int(10) unsigned NOT NULL DEFAULT '0',
+                            PRIMARY KEY (`date`,`article`),
+                            KEY `article` (`article`),
+                            CONSTRAINT `fk_stocks_date` FOREIGN KEY (
+                            `date`
+                            ) REFERENCES {ref_dates_table} (
+                            `full_date`
+                            ) ON DELETE CASCADE ON UPDATE CASCADE,
+                            CONSTRAINT `fk_stocks_product` FOREIGN KEY (
+                            `article`
+                            ) REFERENCES {ref_products_table} (
+                            `article`
+                            ) ON UPDATE CASCADE
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        '''
+                        cursor.execute(create_table_query)
+                        logging.info(f'Таблица {table_name} успешно создана')
+                        WbDataBaseClient.ALLOWED_TABLES_IN_DB.append(
+                            table_name)
+                        return table_name
+                    else:
+                        logging.error('Отсутствует таблицы для ссылки')
+                        raise RefTableError
+                else:
+                    logging.error(
+                        f'Неразрешенный тип данных таблицы: {type_data}')
+                    raise TypeDataError
+            except mysql.connector.Error as table_err:
+                logging.error(
+                    f'❌ Ошибка создания таблицы: {table_err}'
+                )
+                connection.rollback()
+        else:
+            return table_name
 
     def parse_product_data(
         self,
@@ -71,8 +198,11 @@ class WbDataBaseClient:
         year = date.year
         weekday = date.isoweekday()
 
-        query = '''
-            INSERT INTO catalog_dates (
+        table_name = WbDataBaseClient._create_table_if_not_exist(
+            'catalog', 'dates', 'loweis'
+        )
+        query = f'''
+            INSERT INTO {table_name} (
             full_date,
             day,
             month,
@@ -90,8 +220,11 @@ class WbDataBaseClient:
         полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
-        query = '''
-            INSERT INTO catalog_products (article, name)
+        table_name = WbDataBaseClient._create_table_if_not_exist(
+            'catalog', 'products', 'loweis'
+        )
+        query = f'''
+            INSERT INTO {table_name} (article, name)
             VALUES (%s, %s)
             ON DUPLICATE KEY UPDATE
             name = VALUES(name)
@@ -106,9 +239,11 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-
-        query = '''
-            INSERT INTO reports_stocks (date, article, stock)
+        table_name = WbDataBaseClient._create_table_if_not_exist(
+            'reports', 'stocks', 'loweis'
+        )
+        query = f'''
+            INSERT INTO {table_name} (date, article, stock)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
             stock = VALUES(stock)
@@ -123,9 +258,11 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-
-        query = '''
-            INSERT INTO reports_sales (date, article, sale)
+        table_name = WbDataBaseClient._create_table_if_not_exist(
+            'reports', 'sales', 'loweis'
+        )
+        query = f'''
+            INSERT INTO {table_name} (date, article, sale)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
             sale = VALUES(sale)
@@ -143,13 +280,19 @@ class WbDataBaseClient:
         cursor=None
     ) -> None:
         """Метод сохраняется обработанные данные в базу данных."""
-        query, params = query_data
-        if isinstance(params, list):
-            cursor.executemany(query, params)
-        else:
-            cursor.execute(query, params)
-        connection.commit()
-        logging.info('✅ Данные успешно сохранены!')
+        try:
+            query, params = query_data
+            if isinstance(params, list):
+                cursor.executemany(query, params)
+            else:
+                cursor.execute(query, params)
+            connection.commit()
+            logging.info('✅ Данные успешно сохранены!')
+        except mysql.connector.Error as table_err:
+            logging.error(
+                f'❌ Ошибка сохранения данных: {table_err}'
+            )
+            connection.rollback()
 
     @connection_db
     def clean_db(self, connection=None, cursor=None, **tables: bool) -> None:

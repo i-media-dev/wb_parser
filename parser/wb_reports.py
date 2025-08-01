@@ -4,6 +4,7 @@ import requests
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.utils import (
+    # all_data_for_period,
     # export_data,
     fetch_data,
     initialize_components,
@@ -41,6 +42,13 @@ def main():
         #     date_str,
         #     all_data,
         #     all_sales
+        # )
+
+        # all_data_for_period(
+        #     client,
+        #     db_client,
+        #     start_date='2025-07-01',
+        #     end_date='2025-07-31'
         # )
 
     except requests.RequestException as e:

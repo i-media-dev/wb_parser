@@ -12,8 +12,8 @@ TWO_WEEK = 14
 
 """Разрешенные названия таблиц в базе данных"""
 ALLOWED_TABLES = [
-    'catalog_dates',
-    'catalog_products',
-    'reports_stocks',
-    'reports_sales'
+    'catalog_dates_loweis',
+    'catalog_products_loweis',
+    'reports_stocks_loweis',
+    'reports_sales_loweis'
 ]

@@ -22,27 +22,27 @@ class TestWbDataBaseClient:
 
     def test_validate_date_db(self, db_client):
         query, params = db_client.validate_date_db('2025-07-10')
-        assert query.strip().startswith('INSERT INTO catalog_dates')
+        assert query.strip().startswith('INSERT INTO catalog_dates_loweis')
         assert params == (dt(2025, 7, 10).date(), 10, 7, 2025, 4)
 
     def test_validate_products_db(self, db_client, mock_stock_data):
         parsed_data = db_client.parse_product_data(
             mock_stock_data, '2025-07-10')
         query, params = db_client.validate_products_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO catalog_products')
+        assert query.strip().startswith('INSERT INTO catalog_products_loweis')
         assert params == [(12345, 'Test Product')]
 
     def test_validate_stocks_db(self, db_client, mock_stock_data):
         parsed_data = db_client.parse_product_data(
             mock_stock_data, '2025-07-10')
         query, params = db_client.validate_stocks_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO reports_stocks')
+        assert query.strip().startswith('INSERT INTO reports_stocks_loweis')
         assert params == [(dt(2025, 7, 10).date(), 12345, 100)]
 
     def test_validate_sales_db(self, db_client, mock_sales_data):
         parsed_data = db_client.parse_avg_sales(mock_sales_data, '2025-07-10')
         query, params = db_client.validate_sales_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO reports_sales')
+        assert query.strip().startswith('INSERT INTO reports_sales_loweis')
         assert params == [(dt(2025, 7, 10).date(), 12345, 5 // TWO_WEEK)]
 
     def test_save_to_db(self, db_client):
@@ -68,7 +68,8 @@ class TestWbDataBaseClient:
             mock_connect.return_value = mock_conn
             mock_conn.cursor.return_value = mock_cursor
 
-            db_client.clean_db(catalog_products=True, catalog_dates=True)
+            db_client.clean_db(catalog_products_loweis=True,
+                               catalog_dates_loweis=True)
 
             assert mock_cursor.execute.call_count == 2
             mock_conn.commit.assert_called()

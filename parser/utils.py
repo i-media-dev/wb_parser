@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime as dt, timedelta
 from dotenv import load_dotenv
+from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.wb_db import WbDataBaseClient
 from parser.wb_tools import WbAnalyticsClient
@@ -118,6 +119,42 @@ def save_to_database(
         db_client.save_to_db(query)
 
 
+@time_of_function
+def all_data_for_period(
+    client: WbAnalyticsClient,
+    db_client: WbDataBaseClient,
+    start_date: str,
+    end_date: str
+) -> None:
+    """
+    Функция для заполнения существующих таблиц базы данных
+    данными за заданный период.
+    Args:
+        - db_client (WbDataBaseClient): Клиент для работы с базой данных.
+        - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
+        - start_date (str): Начальная дата периода.
+        - end_date (str): Конечная дата периода.
+    """
+    fdate_start = dt.strptime(start_date, '%Y-%m-%d').date()
+    fdate_end = dt.strptime(end_date, '%Y-%m-%d').date()
+    days = (fdate_end - fdate_start).days + 1
+    date_list = [fdate_start + timedelta(days=i) for i in range(days)]
+    date_str_list = [d.strftime('%Y-%m-%d') for d in date_list]
+    for date in date_str_list:
+        stocks = client.get_all_stock_reports(start_date=date, end_date=date)
+        slaes = client.get_all_sales_reports(date_str=date)
+        parse_sales = db_client.parse_avg_sales(data=slaes, date_str=date)
+        parse_products = db_client.parse_product_data(
+            data=stocks, date_str=date)
+        queries = [
+            db_client.validate_date_db(date_str=date),
+            db_client.validate_products_db(data=parse_products),
+            db_client.validate_stocks_db(data=parse_products),
+            db_client.validate_sales_db(data=parse_sales)
+        ]
+        for query in queries:
+            db_client.save_to_db(query)
+
 # def export_data(
 #     client: WbAnalyticsClient,
 #     date_str: str,
@@ -140,15 +177,3 @@ def save_to_database(
 #     """
 #     client.save_to_json(all_sales, date_str, 'avg_sales')
 #     client.save_to_json(all_data, date_str)
-
-# def all_data_for_period(client, db_client, start_date, end_date):
-#     fdate_start = dt.strptime(start_date, '%Y-%m-%d').date()
-#     fdate_end = dt.strptime(end_date, '%Y-%m-%d').date()
-#     days = (fdate_end - fdate_start).days + 1
-#     date_list = [fdate_start + timedelta(days=i) for i in range(days)]
-#     date_str_list = [d.strftime('%Y-%m-%d') for d in date_list]
-#     for date in date_str_list:
-#         stocks = client.get_all_stock_reports(start_date=date, end_date=date)
-#         slaes = client.get_all_sales__reports(date=date)
-#         parse_sales = db_client.parse_avg_sales()
-#         parse_products = db_client.parse_product_data()

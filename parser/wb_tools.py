@@ -104,12 +104,12 @@ class WbAnalyticsClient:
         return response.json()
 
     @time_of_function
-    def get_all_sales_reports(self, date: str) -> list[dict]:
+    def get_all_sales_reports(self, date_str: str) -> list[dict]:
         """
         Метод, формирующий запрос к API Wildberries
         с учетом пагинации.
         """
-        date_formatted = dt.strptime(date, "%Y-%m-%d").date()
+        date_formatted = dt.strptime(date_str, "%Y-%m-%d").date()
         start_date = (
             date_formatted - timedelta(days=TWO_WEEK)
         ).strftime('%Y-%m-%d')
