@@ -27,7 +27,7 @@ config = {
     'password': os.getenv('DB_PASSWORD_LOWEIS'),
     'host': os.getenv('DB_HOST_LOWEIS'),
     'database': os.getenv('DB_NAME_LOWEIS'),
-    'port': os.getenv('DB_PORT_LOWEIS'),
+    'port': os.getenv('DB_PORT_LOWEIS', 3306),
     'connection_timeout': 10,
     'use_pure': True
 }
