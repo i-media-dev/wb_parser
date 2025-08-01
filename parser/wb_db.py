@@ -138,6 +138,7 @@ class WbDataBaseClient:
                 logging.error(
                     f'❌ Ошибка создания таблицы: {table_err}'
                 )
+                connection.rollback()
         else:
             return table_name
 
@@ -197,11 +198,8 @@ class WbDataBaseClient:
         year = date.year
         weekday = date.isoweekday()
 
-        table_name = WbDataBaseClient._create_table_if_not_exist(
-            'catalog', 'dates', 'loweis'
-        )
         query = f'''
-            INSERT INTO {table_name} (
+            INSERT INTO catalog_dates_loweis (
             full_date,
             day,
             month,
@@ -219,11 +217,9 @@ class WbDataBaseClient:
         полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
-        table_name = WbDataBaseClient._create_table_if_not_exist(
-            'catalog', 'products', 'loweis'
-        )
+
         query = f'''
-            INSERT INTO {table_name} (article, name)
+            INSERT INTO catalog_products_loweis (article, name)
             VALUES (%s, %s)
             ON DUPLICATE KEY UPDATE
             name = VALUES(name)
@@ -238,11 +234,9 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-        table_name = WbDataBaseClient._create_table_if_not_exist(
-            'reports', 'stocks', 'loweis'
-        )
+
         query = f'''
-            INSERT INTO {table_name} (date, article, stock)
+            INSERT INTO reports_stocks_loweis (date, article, stock)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
             stock = VALUES(stock)
@@ -257,11 +251,9 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-        table_name = WbDataBaseClient._create_table_if_not_exist(
-            'reports', 'sales', 'loweis'
-        )
+
         query = f'''
-            INSERT INTO {table_name} (date, article, sale)
+            INSERT INTO reports_sales_loweis (date, article, sale)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
             sale = VALUES(sale)
