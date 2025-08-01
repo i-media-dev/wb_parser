@@ -198,7 +198,7 @@ class WbDataBaseClient:
         year = date.year
         weekday = date.isoweekday()
 
-        query = f'''
+        query = '''
             INSERT INTO catalog_dates_loweis (
             full_date,
             day,
@@ -218,7 +218,7 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
 
-        query = f'''
+        query = '''
             INSERT INTO catalog_products_loweis (article, name)
             VALUES (%s, %s)
             ON DUPLICATE KEY UPDATE
@@ -235,7 +235,7 @@ class WbDataBaseClient:
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
 
-        query = f'''
+        query = '''
             INSERT INTO reports_stocks_loweis (date, article, stock)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
@@ -252,7 +252,7 @@ class WbDataBaseClient:
         """
         date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
 
-        query = f'''
+        query = '''
             INSERT INTO reports_sales_loweis (date, article, sale)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
