@@ -9,5 +9,4 @@ class RefTableError(ValueError):
 
 
 class TableNameError(ValueError):
-    def __str__(self):
-        return 'Invalid name of table'
+    pass

@@ -5,7 +5,7 @@ WB_PRODUCT_DATA = (
 )
 WB_AVG_SALES = 'https://statistics-api.wildberries.ru/api/v1/supplier/orders'
 
-NAME_OF_SHOP = 'new_shop'
+NAME_OF_SHOP = 'loweis'
 
 """Константы, регулирующие запрос."""
 DATA_PAGE_LIMIT = 100
@@ -55,7 +55,7 @@ CREATE_SALES_TABLE = '''
         `article`
         ) REFERENCES {ref_products_table} (
         `article`
-        ) ON UPDATE CASCADE
+        ) ON DELETE CASCADE ON UPDATE CASCADE
     );
     '''
 CREATE_STOCKS_TABLE = '''
@@ -74,6 +74,6 @@ CREATE_STOCKS_TABLE = '''
         `article`
         ) REFERENCES {ref_products_table} (
         `article`
-        ) ON UPDATE CASCADE
+        ) ON DELETE CASCADE ON UPDATE CASCADE
     );
     '''

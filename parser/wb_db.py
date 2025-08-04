@@ -23,18 +23,21 @@ class WbDataBaseClient:
     """Класс, который работает с базой данных."""
 
     @staticmethod
-    def _allowed_tables() -> list:
+    def _allowed_tables(connection=None) -> list:
         """
         Защищенный метод возвращает список существующих
         таблиц в базе данных.
         """
-        connection = mysql.connector.connect(**config)
-        try:
+        if connection:
             with connection.cursor() as cursor:
                 cursor.execute('SHOW TABLES')
                 return [table[0] for table in cursor.fetchall()]
-        finally:
-            connection.close()
+        else:
+            with mysql.connector.connect(
+                **config
+            ) as temp_conn, temp_conn.cursor() as cursor:
+                cursor.execute('SHOW TABLES')
+                return [table[0] for table in cursor.fetchall()]
 
     @staticmethod
     @connection_db
@@ -253,7 +256,6 @@ class WbDataBaseClient:
             cursor.executemany(query, params)
         else:
             cursor.execute(query, params)
-        connection.commit()
         logging.info('✅ Данные успешно сохранены!')
 
     @connection_db
@@ -264,14 +266,15 @@ class WbDataBaseClient:
         (таблицы reports_sales и reports_stocks удаляются автоматически
         если удалить catalog_products).
         """
-        for table in tables:
-            if table not in WbDataBaseClient._allowed_tables():
-                logging.error('Такой таблицы не существует.')
-                raise TableNameError()
-            delete_query = f'DELETE FROM {table}'
-            cursor.execute(delete_query)
-            connection.commit()
-            logging.debug(
-                f'Таблица `{table}` очищена. '
-                f'Удалено строк: {cursor.rowcount}'
-            )
+        try:
+            allowed_tables = self._allowed_tables(connection)
+            for table_name, should_clean in tables.items():
+                if not should_clean:
+                    continue
+                if table_name not in allowed_tables:
+                    raise TableNameError(f'Таблица {table_name} не существует')
+                cursor.execute(f'DELETE FROM {table_name}')
+                logging.info(f'Таблица {table_name} очищена')
+        except Exception as e:
+            logging.error(f'Ошибка очистки: {e}')
+            raise

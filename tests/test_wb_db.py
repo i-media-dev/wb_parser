@@ -104,12 +104,20 @@ def test_validate_sales_db(db_client):
 
 
 def test_create_table_if_not_exist_invalid_type(db_client):
-    with pytest.raises(TypeDataError):
+    with patch.object(
+        db_client,
+        '_allowed_tables',
+        return_value=[]
+    ), pytest.raises(TypeDataError):
         db_client._create_table_if_not_exist('catalog', 'invalid_type')
 
 
 def test_create_table_if_not_exist_missing_refs(db_client):
-    with pytest.raises(RefTableError):
+    with patch.object(
+        db_client,
+        '_allowed_tables',
+        return_value=[]
+    ), pytest.raises(RefTableError):
         db_client._create_table_if_not_exist('reports', 'sales')
 
 
@@ -132,6 +140,9 @@ def test_clean_db_success(db_client):
 
 
 def test_clean_db_table_not_exists(db_client):
-    with patch.object(db_client, '_allowed_tables', return_value=[]):
-        with pytest.raises(TableNameError):
-            db_client.clean_db(nonexistent_table=True)
+    with patch.object(
+        db_client,
+        '_allowed_tables',
+        return_value=[]
+    ), pytest.raises(TableNameError):
+        db_client.clean_db(nonexistent_table=True)

@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from parser.wb_tools import WbAnalyticsClient
 from parser.wb_db import WbDataBaseClient
 
@@ -10,7 +11,10 @@ def wb_client():
 
 @pytest.fixture
 def db_client():
-    return WbDataBaseClient()
+    with patch('mysql.connector.connect'), \
+            patch.object(WbDataBaseClient, '_allowed_tables', return_value=[]):
+        client = WbDataBaseClient()
+        yield client
 
 
 @pytest.fixture
