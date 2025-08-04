@@ -1,4 +1,3 @@
-from pprint import pprint
 import logging
 from collections import defaultdict
 from datetime import datetime as dt
@@ -32,7 +31,7 @@ class WbDataBaseClient:
         connection = mysql.connector.connect(**config)
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SHOW TABLES")
+                cursor.execute('SHOW TABLES')
                 return [table[0] for table in cursor.fetchall()]
         finally:
             connection.close()
@@ -95,7 +94,9 @@ class WbDataBaseClient:
 
         config = table_config[type_data]
 
-        if config['requires_refs'] and not (ref_dates_table and ref_products_table):
+        if config['requires_refs'] and not (
+            ref_dates_table and ref_products_table
+        ):
             logging.error('Отсутствуют таблицы для ссылки')
             raise RefTableError
         create_table_query = config['template'].format(**config['format_args'])

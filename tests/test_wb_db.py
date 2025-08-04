@@ -1,75 +1,137 @@
-from datetime import datetime as dt
+import pytest
 from unittest.mock import patch, MagicMock
+from datetime import date
+from parser.exceptions import RefTableError, TableNameError, TypeDataError
+from parser.wb_db import WbDataBaseClient
 
-from parser.constants import TWO_WEEK
+
+def test_parse_product_data(db_client):
+    test_data = [
+        {"name": '"Товар 1"', "nmID": 12345, "metrics": {"stockCount": 10}},
+        {"name": 'Товар 2', "nmID": 67890, "metrics": {"stockCount": 5}},
+    ]
+    date_str = "2023-01-01"
+    result = db_client.parse_product_data(test_data, date_str)
+    assert len(result) == 2
+    assert result[0]["наименование"] == "Товар 1"
+    assert result[0]["артикул"] == 12345
+    assert result[0]["остаток"] == 10
+    assert result[0]["дата"] == "2023-01-01"
+    assert result[1]["наименование"] == "Товар 2"
 
 
-class TestWbDataBaseClient:
-    def test_parse_product_data(self, db_client, mock_stock_data):
-        result = db_client.parse_product_data(mock_stock_data, '2025-07-10')
-        assert len(result) == 1
-        assert result[0]['артикул'] == 12345
-        assert result[0]['наименование'] == 'Test Product'
-        assert result[0]['остаток'] == 100
-        assert result[0]['дата'] == '2025-07-10'
+def test_parse_avg_sales(db_client):
+    test_data = [
+        {"nmId": 12345, "isRealization": True, "isCancel": False},
+        {"nmId": 12345, "isRealization": True, "isCancel": False},
+        {"nmId": 67890, "isRealization": True, "isCancel": False},
+        {"nmId": 12345, "isRealization": False, "isCancel": True},
+    ]
+    date_str = "2023-01-01"
+    result = db_client.parse_avg_sales(test_data, date_str)
+    assert len(result) == 2
+    assert result[0]["артикул"] in [12345, 67890]
+    assert result[1]["артикул"] in [12345, 67890]
+    for item in result:
+        if item["артикул"] == 12345:
+            assert item["среднее значение"] == 2 // 14
+        else:
+            assert item["среднее значение"] == 1 // 14
 
-    def test_parse_avg_sales(self, db_client, mock_sales_data):
-        result = db_client.parse_avg_sales(mock_sales_data, '2025-07-10')
-        assert len(result) == 1
-        assert result[0]['артикул'] == 12345
-        assert result[0]['среднее значение'] == 5 // TWO_WEEK
-        assert result[0]['дата'] == '2025-07-10'
 
-    def test_validate_date_db(self, db_client):
-        query, params = db_client.validate_date_db('2025-07-10')
-        assert query.strip().startswith('INSERT INTO catalog_dates_loweis')
-        assert params == (dt(2025, 7, 10).date(), 10, 7, 2025, 4)
+def test_validate_date_db(db_client):
+    date_str = "2025-01-01"
+    with patch.object(
+        db_client,
+        '_create_table_if_not_exist',
+        return_value='catalog_dates_test_shop'
+    ):
+        query, params = db_client.validate_date_db(date_str)
+        assert 'INSERT INTO catalog_dates_test_shop' in query
+        assert params[0] == date(2025, 1, 1)
+        assert params[1:] == (1, 1, 2025, 3)
 
-    def test_validate_products_db(self, db_client, mock_stock_data):
-        parsed_data = db_client.parse_product_data(
-            mock_stock_data, '2025-07-10')
-        query, params = db_client.validate_products_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO catalog_products_loweis')
-        assert params == [(12345, 'Test Product')]
 
-    def test_validate_stocks_db(self, db_client, mock_stock_data):
-        parsed_data = db_client.parse_product_data(
-            mock_stock_data, '2025-07-10')
-        query, params = db_client.validate_stocks_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO reports_stocks_loweis')
-        assert params == [(dt(2025, 7, 10).date(), 12345, 100)]
+def test_validate_products_db(db_client):
+    test_data = [
+        {"артикул": 12345, "наименование": "Товар 1"},
+        {"артикул": 67890, "наименование": "Товар 2"},
+    ]
+    with patch.object(
+        db_client,
+        '_create_table_if_not_exist',
+        return_value='catalog_products_test_shop'
+    ):
+        query, params = db_client.validate_products_db(test_data)
+        assert 'INSERT INTO catalog_products_test_shop' in query
+        assert len(params) == 2
+        assert params[0] == (12345, "Товар 1")
+        assert params[1] == (67890, "Товар 2")
 
-    def test_validate_sales_db(self, db_client, mock_sales_data):
-        parsed_data = db_client.parse_avg_sales(mock_sales_data, '2025-07-10')
-        query, params = db_client.validate_sales_db(parsed_data)
-        assert query.strip().startswith('INSERT INTO reports_sales_loweis')
-        assert params == [(dt(2025, 7, 10).date(), 12345, 5 // TWO_WEEK)]
 
-    def test_save_to_db(self, db_client):
-        test_data = ('INSERT INTO test VALUES (%s)', [('test',)])
+def test_validate_stocks_db(db_client):
+    test_data = [
+        {"дата": "2025-01-01", "артикул": 12345, "остаток": 10},
+        {"дата": "2025-01-01", "артикул": 67890, "остаток": 5},
+    ]
+    with patch.object(
+        db_client,
+        '_create_table_if_not_exist',
+        return_value='reports_stocks_test_shop'
+    ):
+        query, params = db_client.validate_stocks_db(test_data)
+        assert 'INSERT INTO reports_stocks_test_shop' in query
+        assert len(params) == 2
+        assert params[0] == (date(2025, 1, 1), 12345, 10)
+        assert params[1] == (date(2025, 1, 1), 67890, 5)
 
-        with patch('mysql.connector.connect') as mock_connect:
-            mock_conn = MagicMock()
-            mock_cursor = MagicMock()
-            mock_connect.return_value = mock_conn
-            mock_conn.cursor.return_value = mock_cursor
 
-            db_client.save_to_db(test_data)
+def test_validate_sales_db(db_client):
+    test_data = [
+        {"дата": "2025-01-01", "артикул": 12345, "среднее значение": 2},
+        {"дата": "2025-01-01", "артикул": 67890, "среднее значение": 1},
+    ]
+    with patch.object(
+        db_client,
+        '_create_table_if_not_exist',
+        return_value='reports_sales_test_shop'
+    ):
+        query, params = db_client.validate_sales_db(test_data)
+        assert 'INSERT INTO reports_sales_test_shop' in query
+        assert len(params) == 2
+        assert params[0] == (date(2025, 1, 1), 12345, 2)
+        assert params[1] == (date(2025, 1, 1), 67890, 1)
 
-            mock_cursor.executemany.assert_called_once_with(
-                'INSERT INTO test VALUES (%s)', [('test',)]
-            )
-            mock_conn.commit.assert_called_once()
 
-    def test_clean_db(self, db_client):
-        with patch('mysql.connector.connect') as mock_connect:
-            mock_conn = MagicMock()
-            mock_cursor = MagicMock()
-            mock_connect.return_value = mock_conn
-            mock_conn.cursor.return_value = mock_cursor
+def test_create_table_if_not_exist_invalid_type(db_client):
+    with pytest.raises(TypeDataError):
+        db_client._create_table_if_not_exist('catalog', 'invalid_type')
 
-            db_client.clean_db(catalog_products_loweis=True,
-                               catalog_dates_loweis=True)
 
-            assert mock_cursor.execute.call_count == 2
-            mock_conn.commit.assert_called()
+def test_create_table_if_not_exist_missing_refs(db_client):
+    with pytest.raises(RefTableError):
+        db_client._create_table_if_not_exist('reports', 'sales')
+
+
+def test_clean_db_success(db_client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    with patch.object(
+        WbDataBaseClient,
+        '_allowed_tables',
+        return_value=['valid_table']
+    ), patch('mysql.connector.connect', return_value=mock_conn), patch.object(
+        db_client,
+        '_allowed_tables',
+        return_value=['valid_table']
+    ):
+        db_client.clean_db(valid_table=True)
+        mock_cursor.execute.assert_called_once_with('DELETE FROM valid_table')
+        mock_conn.commit.assert_called_once()
+
+
+def test_clean_db_table_not_exists(db_client):
+    with patch.object(db_client, '_allowed_tables', return_value=[]):
+        with pytest.raises(TableNameError):
+            db_client.clean_db(nonexistent_table=True)

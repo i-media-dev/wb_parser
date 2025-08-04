@@ -5,7 +5,7 @@ WB_PRODUCT_DATA = (
 )
 WB_AVG_SALES = 'https://statistics-api.wildberries.ru/api/v1/supplier/orders'
 
-NAME_OF_SHOP = 'loweis'
+NAME_OF_SHOP = 'new_shop'
 
 """Константы, регулирующие запрос."""
 DATA_PAGE_LIMIT = 100
@@ -46,12 +46,12 @@ CREATE_SALES_TABLE = '''
         `sale` int(11) DEFAULT '0',
         PRIMARY KEY (`date`,`article`),
         KEY `article` (`article`),
-        CONSTRAINT `fk_sales_date` FOREIGN KEY (
+        CONSTRAINT `fk_{table_name}_date` FOREIGN KEY (
         `date`
         ) REFERENCES {ref_dates_table} (
         `full_date`
         ) ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT `fk_sales_product` FOREIGN KEY (
+        CONSTRAINT `fk_{table_name}_product` FOREIGN KEY (
         `article`
         ) REFERENCES {ref_products_table} (
         `article`
@@ -65,12 +65,12 @@ CREATE_STOCKS_TABLE = '''
         `stock` int(10) unsigned NOT NULL DEFAULT '0',
         PRIMARY KEY (`date`,`article`),
         KEY `article` (`article`),
-        CONSTRAINT `fk_stocks_date` FOREIGN KEY (
+        CONSTRAINT `fk_{table_name}_date` FOREIGN KEY (
         `date`
         ) REFERENCES {ref_dates_table} (
         `full_date`
         ) ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT `fk_stocks_product` FOREIGN KEY (
+        CONSTRAINT `fk_{table_name}_product` FOREIGN KEY (
         `article`
         ) REFERENCES {ref_products_table} (
         `article`
