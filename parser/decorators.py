@@ -54,31 +54,18 @@ def connection_db(func):
         подключения к базе данных и логирования.
     """
     def wrapper(*args, **kwargs):
-        connection = None
-        cursor = None
+        connection = mysql.connector.connect(**config)
+        cursor = connection.cursor()
         try:
-            if 'connection' not in kwargs or kwargs['connection'] is None:
-                connection = mysql.connector.connect(**config)
-                cursor = connection.cursor()
-                kwargs['connection'] = connection
-                kwargs['cursor'] = cursor
-                logging.debug('✅ Создано новое подключение к БД')
-            else:
-                logging.debug('Используется существующее подключение')
+            kwargs['cursor'] = cursor
             result = func(*args, **kwargs)
-            if connection:
-                connection.commit()
+            connection.commit()
             return result
         except Exception as e:
-            logging.error(
-                f'❌ Ошибка в {func.__name__}: {str(e)}', exc_info=True)
-            if connection:
-                connection.rollback()
+            connection.rollback()
+            logging.error(f'Ошибка в {func.__name__}: {str(e)}', exc_info=True)
             raise
         finally:
-            if cursor and 'cursor' not in kwargs:
-                cursor.close()
-            if connection and 'connection' not in kwargs:
-                connection.close()
-                logging.debug('Соединение закрыто')
+            cursor.close()
+            connection.close()
     return wrapper

@@ -1,20 +1,21 @@
 import logging
 from collections import defaultdict
 from datetime import datetime as dt
-import mysql.connector
 from parser.constants import (
     CREATE_DATES_TABLE,
     CREATE_PRODUCTS_TABLE,
     CREATE_SALES_TABLE,
     CREATE_STOCKS_TABLE,
+    INSERT_DATES,
+    INSERT_PRODUCTS,
+    INSERT_SALES,
+    INSERT_STOCKS,
     NAME_OF_SHOP,
     TWO_WEEK
 )
-from parser.db_config import config
 from parser.decorators import connection_db
 from parser.exceptions import RefTableError, TableNameError, TypeDataError
 from parser.logging_config import setup_logging
-
 
 setup_logging()
 
@@ -22,26 +23,18 @@ setup_logging()
 class WbDataBaseClient:
     """Класс, который работает с базой данных."""
 
-    @staticmethod
-    def _allowed_tables(connection=None) -> list:
+    @connection_db
+    def _allowed_tables(self, cursor=None) -> list:
         """
         Защищенный метод возвращает список существующих
         таблиц в базе данных.
         """
-        if connection:
-            with connection.cursor() as cursor:
-                cursor.execute('SHOW TABLES')
-                return [table[0] for table in cursor.fetchall()]
-        else:
-            with mysql.connector.connect(
-                **config
-            ) as temp_conn, temp_conn.cursor() as cursor:
-                cursor.execute('SHOW TABLES')
-                return [table[0] for table in cursor.fetchall()]
+        cursor.execute('SHOW TABLES')
+        return [table[0] for table in cursor.fetchall()]
 
-    @staticmethod
     @connection_db
     def _create_table_if_not_exist(
+        self,
         type_table: str,
         type_data: str,
         shop_name: str = NAME_OF_SHOP,
@@ -56,7 +49,7 @@ class WbDataBaseClient:
         Если таблица есть в базе данных возварщает ее имя.
         """
         table_name = f'{type_table}_{type_data}_{shop_name}'
-        if table_name in WbDataBaseClient._allowed_tables():
+        if table_name in self._allowed_tables():
             logging.info(f'Таблица {table_name} найдена в базе')
             return table_name
 
@@ -162,20 +155,8 @@ class WbDataBaseClient:
         month = date.month
         year = date.year
         weekday = date.isoweekday()
-
         table_name = self._create_table_if_not_exist('catalog', 'dates')
-
-        query = f'''
-            INSERT INTO {table_name} (
-            full_date,
-            day,
-            month,
-            year,
-            day_of_week
-            )
-            VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE id = id
-        '''
+        query = INSERT_DATES.format(table_name=table_name)
         return query, (date, day, month, year, weekday)
 
     def validate_products_db(self, data: list) -> tuple:
@@ -185,13 +166,7 @@ class WbDataBaseClient:
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
         table_name = self._create_table_if_not_exist('catalog', 'products')
-
-        query = f'''
-            INSERT INTO {table_name} (article, name)
-            VALUES (%s, %s)
-            ON DUPLICATE KEY UPDATE
-            name = VALUES(name)
-        '''
+        query = INSERT_PRODUCTS.format(table_name=table_name)
         params = [(item['артикул'], item['наименование']) for item in data]
         return query, params
 
@@ -208,13 +183,7 @@ class WbDataBaseClient:
             ref_dates_table=f'catalog_dates_{NAME_OF_SHOP}',
             ref_products_table=f'catalog_products_{NAME_OF_SHOP}'
         )
-
-        query = f'''
-            INSERT INTO {table_name} (date, article, stock)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-            stock = VALUES(stock)
-        '''
+        query = INSERT_STOCKS.format(table_name=table_name)
         params = [(date, item['артикул'], item['остаток']) for item in data]
         return query, params
 
@@ -231,13 +200,7 @@ class WbDataBaseClient:
             ref_dates_table=f'catalog_dates_{NAME_OF_SHOP}',
             ref_products_table=f'catalog_products_{NAME_OF_SHOP}'
         )
-
-        query = f'''
-            INSERT INTO {table_name} (date, article, sale)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-            sale = VALUES(sale)
-        '''
+        query = INSERT_SALES.format(table_name=table_name)
         params = [
             (date, item['артикул'], item['среднее значение']) for item in data
         ]
@@ -259,7 +222,7 @@ class WbDataBaseClient:
         logging.info('✅ Данные успешно сохранены!')
 
     @connection_db
-    def clean_db(self, connection=None, cursor=None, **tables: bool) -> None:
+    def clean_db(self, cursor=None, **tables: bool) -> None:
         """
         Метод очищает базу данных. В tables передаются имеющиеся в базе данных
         таблицы, которые нужно удалить, учитывая связь таблиц по PK и FK
@@ -267,14 +230,15 @@ class WbDataBaseClient:
         если удалить catalog_products).
         """
         try:
-            allowed_tables = self._allowed_tables(connection)
+            existing_tables = self._allowed_tables()
             for table_name, should_clean in tables.items():
-                if not should_clean:
-                    continue
-                if table_name not in allowed_tables:
-                    raise TableNameError(f'Таблица {table_name} не существует')
-                cursor.execute(f'DELETE FROM {table_name}')
-                logging.info(f'Таблица {table_name} очищена')
+                if should_clean and table_name in existing_tables:
+                    cursor.execute(f'DELETE FROM {table_name}')
+                    logging.info(f'Таблица {table_name} очищена')
+                else:
+                    raise TableNameError(
+                        f'В базе данных отсутствует таблица {table_name}.'
+                    )
         except Exception as e:
             logging.error(f'Ошибка очистки: {e}')
             raise

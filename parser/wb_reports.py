@@ -37,6 +37,14 @@ def main():
 
         save_to_database(db_client, date_str, formatter_data, formatter_sales)
 
+        """
+        Расширенные возможности скрипта.
+        - Очистка данных таблиц - метод clean_db() класса WbDataBaseClient.
+        - Экспорт данных в json-файл - функция export_data().
+        - Получение данных за указанный период - функция all_data_for_period().
+        """
+        # db_client.clean_db(reports_sales_some_shop=True)
+
         # export_data(
         #     client,
         #     date_str,
