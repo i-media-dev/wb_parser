@@ -6,4 +6,4 @@ services:
     user: "1002:1002"
     env_file: .env
     volumes:
-      - C:\Develope\wb_parser/logs:/app/logs
+      - /c/Develope/wb_parser/logs:/app/logs
