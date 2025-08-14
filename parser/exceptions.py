@@ -10,3 +10,27 @@ class RefTableError(ValueError):
 
 class TableNameError(ValueError):
     pass
+
+
+class SizeTokenError(ValueError):
+    pass
+
+
+class VerificationError(ValueError):
+    pass
+
+
+class EmptyTokenError(ValueError):
+    pass
+
+
+class BinaryTokenError(ValueError):
+    pass
+
+
+class ModelTokenError(ValueError):
+    pass
+
+
+class EnvFileError(ValueError):
+    pass

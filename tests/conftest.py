@@ -1,7 +1,9 @@
 import pytest
-from unittest.mock import patch
+from cryptography.fernet import Fernet
+from unittest.mock import patch, MagicMock
 from parser.wb_tools import WbAnalyticsClient
 from parser.wb_db import WbDataBaseClient
+# from parser.wb_token import WBTokensClient
 
 
 @pytest.fixture

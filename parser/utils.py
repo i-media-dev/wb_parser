@@ -155,25 +155,49 @@ def all_data_for_period(
         for query in queries:
             db_client.save_to_db(query)
 
-# def export_data(
-#     client: WbAnalyticsClient,
-#     date_str: str,
-#     all_data: list[dict],
-#     all_sales: list[dict]
-# ) -> None:
-#     """
-#     Отладочная функция.
-#     Экспортирует данные в JSON файлы.
 
-#     Сохраняет два типа данных в отдельные JSON файлы:
-#     1. Данные о продажах (с префиксом 'avg_sales').
-#     2. Данные об остатках товаров.
+def export_data(
+    client: WbAnalyticsClient,
+    date_str: str,
+    all_data: list[dict],
+    all_sales: list[dict]
+) -> None:
+    """
+    Отладочная функция.
+    Экспортирует данные в JSON файлы.
 
-#     Args:
-#         - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
-#         - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов.
-#         - all_data (list[dict]): Данные об остатках товаров.
-#         - all_sales (list[dict]): Данные о продажах.
-#     """
-#     client.save_to_json(all_sales, date_str, 'avg_sales')
-#     client.save_to_json(all_data, date_str)
+    Сохраняет два типа данных в отдельные JSON файлы:
+    1. Данные о продажах (с префиксом 'avg_sales').
+    2. Данные об остатках товаров.
+
+    Args:
+        - client (WbAnalyticsClient): Клиент для работы с API Wildberries.
+        - date_str (str): Дата в формате 'YYYY-MM-DD' для именования файлов.
+        - all_data (list[dict]): Данные об остатках товаров.
+        - all_sales (list[dict]): Данные о продажах.
+    """
+    client.save_to_json(all_sales, date_str, 'avg_sales')
+    client.save_to_json(all_data, date_str)
+
+
+def main_logic(token_client, date_start: str = '', date_end: str = ''):
+    date_str = (dt.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    for shop_name in token_client.get_exists_shop():
+        token = token_client.decrypt(shop_name)
+        client = WbAnalyticsClient(token)
+        db_client = WbDataBaseClient(shop_name)
+        if not date_start and not date_end:
+            all_sales, all_data = fetch_data(client, date_str)
+            formatter_sales, formatter_data = process_data(
+                db_client, all_sales, all_data, date_str
+            )
+            save_to_database(db_client, date_str,
+                             formatter_data, formatter_sales)
+            token_client.encrypt(shop_name, token)
+        else:
+            all_data_for_period(
+                client,
+                db_client,
+                start_date=date_start,
+                end_date=date_end
+            )

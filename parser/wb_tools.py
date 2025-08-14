@@ -1,4 +1,4 @@
-# import json
+import json
 import logging
 import os
 import time
@@ -202,19 +202,19 @@ class WbAnalyticsClient:
         filename = os.path.join(folder, f'{prefix}_{date_str}.{format}')
         return filename
 
-    # @time_of_function
-    # def save_to_json(
-    #     self,
-    #     data: list,
-    #     date_str: str,
-    #     prefix: str = 'stocks',
-    #     folder: str = 'data'
-    # ) -> None:
-    #     """Отладочный метод сохраняет данные в файл формата json."""
-    #     logging.debug('Сохранение файла...')
-    #     filename = WbAnalyticsClient._get_filename(
-    #         'json', date_str, prefix, folder)
-    #     with open(filename, 'w', encoding='utf-8') as f:
-    #         json.dump(data, f, ensure_ascii=False, indent=2)
-    #     logging.info(f'✅ Данные сохранены в {filename}')
-    #     logging.debug('Файл сохранен.')
+    @time_of_function
+    def save_to_json(
+        self,
+        data: list,
+        date_str: str,
+        prefix: str = 'stocks',
+        folder: str = 'data'
+    ) -> None:
+        """Отладочный метод сохраняет данные в файл формата json."""
+        logging.debug('Сохранение файла...')
+        filename = WbAnalyticsClient._get_filename(
+            'json', date_str, prefix, folder)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        logging.info(f'✅ Данные сохранены в {filename}')
+        logging.debug('Файл сохранен.')

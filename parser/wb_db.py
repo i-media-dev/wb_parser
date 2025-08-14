@@ -23,6 +23,9 @@ setup_logging()
 class WbDataBaseClient:
     """Класс, который работает с базой данных."""
 
+    def __init__(self, shop_name: str = NAME_OF_SHOP):
+        self.shop_name = shop_name
+
     @connection_db
     def _allowed_tables(self, cursor=None) -> list:
         """
@@ -37,10 +40,8 @@ class WbDataBaseClient:
         self,
         type_table: str,
         type_data: str,
-        shop_name: str = NAME_OF_SHOP,
         ref_dates_table: str = '',
         ref_products_table: str = '',
-        connection=None,
         cursor=None
 
     ):
@@ -48,7 +49,7 @@ class WbDataBaseClient:
         Защищенный метод создает таблицу в базе данных если ее не существует.
         Если таблица есть в базе данных возварщает ее имя.
         """
-        table_name = f'{type_table}_{type_data}_{shop_name}'
+        table_name = f'{type_table}_{type_data}_{self.shop_name}'
         if table_name in self._allowed_tables():
             logging.info(f'Таблица {table_name} найдена в базе')
             return table_name
@@ -180,8 +181,8 @@ class WbDataBaseClient:
         table_name = self._create_table_if_not_exist(
             'reports',
             'stocks',
-            ref_dates_table=f'catalog_dates_{NAME_OF_SHOP}',
-            ref_products_table=f'catalog_products_{NAME_OF_SHOP}'
+            ref_dates_table=f'catalog_dates_{self.shop_name}',
+            ref_products_table=f'catalog_products_{self.shop_name}'
         )
         query = INSERT_STOCKS.format(table_name=table_name)
         params = [(date, item['артикул'], item['остаток']) for item in data]
@@ -197,8 +198,8 @@ class WbDataBaseClient:
         table_name = self._create_table_if_not_exist(
             'reports',
             'sales',
-            ref_dates_table=f'catalog_dates_{NAME_OF_SHOP}',
-            ref_products_table=f'catalog_products_{NAME_OF_SHOP}'
+            ref_dates_table=f'catalog_dates_{self.shop_name}',
+            ref_products_table=f'catalog_products_{self.shop_name}'
         )
         query = INSERT_SALES.format(table_name=table_name)
         params = [
@@ -210,7 +211,6 @@ class WbDataBaseClient:
     def save_to_db(
         self,
         query_data: tuple,
-        connection=None,
         cursor=None
     ) -> None:
         """Метод сохраняется обработанные данные в базу данных."""
