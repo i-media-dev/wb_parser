@@ -5,13 +5,19 @@ WB_PRODUCT_DATA = (
 )
 WB_AVG_SALES = 'https://statistics-api.wildberries.ru/api/v1/supplier/orders'
 
+"""Константы дефолтных названий для магазина и модели токенов"""
 NAME_OF_SHOP = 'loweis'
-
 TOKENS_TABLE_NAME = 'tokens'
 
-"""Константы, регулирующие запрос."""
+"""Константы, регулирующие запрос к API."""
 DATA_PAGE_LIMIT = 100
 TWO_WEEK = 14
+
+"""
+Максимальный размер в байтах,
+который может храниться в модели токенов.
+"""
+MAX_BYTE_SIZE = 1024
 
 """SQL запросы для взаимодейсвтия с базой данных MySQL."""
 # запросы на создание таблиц.

@@ -1,9 +1,22 @@
 import pytest
-from cryptography.fernet import Fernet
 from unittest.mock import patch, MagicMock
 from parser.wb_tools import WbAnalyticsClient
 from parser.wb_db import WbDataBaseClient
-# from parser.wb_token import WBTokensClient
+from parser.wb_token import WBTokensClient
+
+
+@pytest.fixture
+def mock_db_cursor():
+    mock_cursor = MagicMock()
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    with patch('parser.decorators.mysql.connector.connect', return_value=mock_conn):
+        yield mock_cursor
+
+
+@pytest.fixture
+def client():
+    return WBTokensClient()
 
 
 @pytest.fixture

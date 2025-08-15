@@ -4,6 +4,7 @@ from cryptography.fernet import Fernet
 from parser.constants import (
     CREATE_TOKEN_TABLE,
     INSERT_TOKEN,
+    MAX_BYTE_SIZE,
     TOKENS_TABLE_NAME
 )
 from parser.decorators import connection_db
@@ -25,7 +26,10 @@ class WBTokensClient:
     """Класс для работы с токенами."""
 
     def keygen(self) -> None:
-        """Генерирует ключ для доступа к методам шифрования/дешифрования."""
+        """
+        Генерирует ключ для доступа к методам шифрования/дешифрования.
+        Ключ генерируется один раз и хранится в переменных окружения.
+        """
         key = Fernet.generate_key()
         print(f'Ключ для шифрования: {key.decode()}')
 
@@ -40,10 +44,10 @@ class WBTokensClient:
 
     def _get_fernet(self):
         """Получает сохраненный ключ из .env."""
-        key = os.getenv('ENCRYPTION_KEY').encode()
+        key = os.getenv('ENCRYPTION_KEY')
         if not key:
             raise EnvFileError('Отсутствуют переменные окружения')
-        return Fernet(key)
+        return Fernet(key.encode())
 
     def _input_data(self) -> tuple[str, str]:
         """Интерфейс для ввода данных."""
@@ -100,7 +104,7 @@ class WBTokensClient:
             decrypted = cipher_suite.decrypt(encrypted).decode('utf-8')
             if decrypted != token:
                 raise VerificationError('Ошибка верификации токена')
-            if len(encrypted) > 1024:
+            if len(encrypted) > MAX_BYTE_SIZE:
                 raise SizeTokenError('Токен слишком большой для хранения')
             query = INSERT_TOKEN.format(table_name_token=token_table_name)
             cursor.execute(query, (shop_name, encrypted))

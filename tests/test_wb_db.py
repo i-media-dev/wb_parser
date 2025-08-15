@@ -7,40 +7,40 @@ from parser.wb_db import WbDataBaseClient
 
 def test_parse_product_data(db_client):
     test_data = [
-        {"name": '"Товар 1"', "nmID": 12345, "metrics": {"stockCount": 10}},
-        {"name": 'Товар 2', "nmID": 67890, "metrics": {"stockCount": 5}},
+        {'name': 'Товар 1', 'nmID': 12345, 'metrics': {'stockCount': 10}},
+        {'name': 'Товар 2', 'nmID': 67890, 'metrics': {'stockCount': 5}},
     ]
-    date_str = "2023-01-01"
+    date_str = '2023-01-01'
     result = db_client.parse_product_data(test_data, date_str)
     assert len(result) == 2
-    assert result[0]["наименование"] == "Товар 1"
-    assert result[0]["артикул"] == 12345
-    assert result[0]["остаток"] == 10
-    assert result[0]["дата"] == "2023-01-01"
-    assert result[1]["наименование"] == "Товар 2"
+    assert result[0]['наименование'] == 'Товар 1'
+    assert result[0]['артикул'] == 12345
+    assert result[0]['остаток'] == 10
+    assert result[0]['дата'] == '2023-01-01'
+    assert result[1]['наименование'] == 'Товар 2'
 
 
 def test_parse_avg_sales(db_client):
     test_data = [
-        {"nmId": 12345, "isRealization": True, "isCancel": False},
-        {"nmId": 12345, "isRealization": True, "isCancel": False},
-        {"nmId": 67890, "isRealization": True, "isCancel": False},
-        {"nmId": 12345, "isRealization": False, "isCancel": True},
+        {'nmId': 12345, 'isRealization': True, 'isCancel': False},
+        {'nmId': 12345, 'isRealization': True, 'isCancel': False},
+        {'nmId': 67890, 'isRealization': True, 'isCancel': False},
+        {'nmId': 12345, 'isRealization': False, 'isCancel': True},
     ]
-    date_str = "2023-01-01"
+    date_str = '2023-01-01'
     result = db_client.parse_avg_sales(test_data, date_str)
     assert len(result) == 2
-    assert result[0]["артикул"] in [12345, 67890]
-    assert result[1]["артикул"] in [12345, 67890]
+    assert result[0]['артикул'] in [12345, 67890]
+    assert result[1]['артикул'] in [12345, 67890]
     for item in result:
-        if item["артикул"] == 12345:
-            assert item["среднее значение"] == 2 // 14
+        if item['артикул'] == 12345:
+            assert item['среднее значение'] == 2 // 14
         else:
-            assert item["среднее значение"] == 1 // 14
+            assert item['среднее значение'] == 1 // 14
 
 
 def test_validate_date_db(db_client):
-    date_str = "2025-01-01"
+    date_str = '2025-01-01'
     with patch.object(
         db_client,
         '_create_table_if_not_exist',
@@ -54,8 +54,8 @@ def test_validate_date_db(db_client):
 
 def test_validate_products_db(db_client):
     test_data = [
-        {"артикул": 12345, "наименование": "Товар 1"},
-        {"артикул": 67890, "наименование": "Товар 2"},
+        {'артикул': 12345, 'наименование': 'Товар 1'},
+        {'артикул': 67890, 'наименование': 'Товар 2'},
     ]
     with patch.object(
         db_client,
@@ -65,14 +65,14 @@ def test_validate_products_db(db_client):
         query, params = db_client.validate_products_db(test_data)
         assert 'INSERT INTO catalog_products_test_shop' in query
         assert len(params) == 2
-        assert params[0] == (12345, "Товар 1")
-        assert params[1] == (67890, "Товар 2")
+        assert params[0] == (12345, 'Товар 1')
+        assert params[1] == (67890, 'Товар 2')
 
 
 def test_validate_stocks_db(db_client):
     test_data = [
-        {"дата": "2025-01-01", "артикул": 12345, "остаток": 10},
-        {"дата": "2025-01-01", "артикул": 67890, "остаток": 5},
+        {'дата': '2025-01-01', 'артикул': 12345, 'остаток': 10},
+        {'дата': '2025-01-01', 'артикул': 67890, 'остаток': 5},
     ]
     with patch.object(
         db_client,
@@ -88,8 +88,8 @@ def test_validate_stocks_db(db_client):
 
 def test_validate_sales_db(db_client):
     test_data = [
-        {"дата": "2025-01-01", "артикул": 12345, "среднее значение": 2},
-        {"дата": "2025-01-01", "артикул": 67890, "среднее значение": 1},
+        {'дата': '2025-01-01', 'артикул': 12345, 'среднее значение': 2},
+        {'дата': '2025-01-01', 'артикул': 67890, 'среднее значение': 1},
     ]
     with patch.object(
         db_client,
