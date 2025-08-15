@@ -1,5 +1,6 @@
 import logging
 import os
+
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from parser.constants import (
@@ -18,7 +19,6 @@ from parser.exceptions import (
     VerificationError
 )
 from parser.logging_config import setup_logging
-
 
 setup_logging()
 load_dotenv()
