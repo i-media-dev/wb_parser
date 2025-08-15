@@ -1,6 +1,7 @@
 import logging
 import os
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
 from parser.constants import (
     CREATE_TOKEN_TABLE,
     INSERT_TOKEN,
@@ -20,6 +21,7 @@ from parser.logging_config import setup_logging
 
 
 setup_logging()
+load_dotenv()
 
 
 class WBTokensClient:

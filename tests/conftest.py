@@ -10,7 +10,9 @@ def mock_db_cursor():
     mock_cursor = MagicMock()
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
-    with patch('parser.decorators.mysql.connector.connect', return_value=mock_conn):
+    with patch(
+        'parser.decorators.mysql.connector.connect', return_value=mock_conn
+    ):
         yield mock_cursor
 
 
