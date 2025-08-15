@@ -53,6 +53,7 @@ def test_encrypt_and_decrypt_flow(client, mock_db_cursor):
         assert decrypted == token
 
 
+@patch.dict('os.environ', {'ENCRYPTION_KEY': Fernet.generate_key().decode()})
 def test_decrypt_raises_if_shop_not_exists(client, mock_db_cursor):
     with patch.object(client, 'get_exists_shop', return_value=[]):
         with patch.object(client, '_ensure_shop_exists') as mock_ensure:
@@ -62,6 +63,7 @@ def test_decrypt_raises_if_shop_not_exists(client, mock_db_cursor):
                 client.decrypt('unknown_shop', cursor=mock_db_cursor)
 
 
+@patch.dict('os.environ', {'ENCRYPTION_KEY': Fernet.generate_key().decode()})
 def test_decrypt_raises_if_token_not_bytes(client, mock_db_cursor):
     with patch.object(client, 'get_exists_shop', return_value=['shop1']):
         mock_db_cursor.fetchone.return_value = ('not_bytes_token',)
