@@ -121,10 +121,17 @@ class WbAnalyticsClient:
             try:
                 result = self._get_sale_report(current_date)
             except requests.HTTPError as e:
-                if e.response.status_code == 429:
+                if e.response.status_code == requests.codes.too_many_requests:
 
                     logging.warning(
                         '⏳ Превышен лимит запросов (429). Ждём 60 секунд...'
+                    )
+                    time.sleep(60)
+                    continue
+                elif e.response.status_code == \
+                        requests.codes.service_unavailable:
+                    logging.warning(
+                        '⏳ Сервер временно недоступен (503). Ждём 20 секунд...'
                     )
                     time.sleep(60)
                     continue
@@ -169,12 +176,19 @@ class WbAnalyticsClient:
                 result = self._get_stock_report(
                     start_date, end_date, offset=offset, limit=limit)
             except requests.HTTPError as e:
-                if e.response.status_code == 429:
+                if e.response.status_code == requests.codes.too_many_requests:
 
                     logging.warning(
                         '⏳ Превышен лимит запросов (429). Ждём 60 секунд...'
                     )
                     time.sleep(60)
+                    continue
+                elif e.response.status_code == \
+                        requests.codes.service_unavailable:
+                    logging.warning(
+                        '⏳ Сервер временно недоступен (503). Ждём 20 секунд...'
+                    )
+                    time.sleep(20)
                     continue
                 else:
                     logging.error(

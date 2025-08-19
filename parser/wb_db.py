@@ -1,12 +1,13 @@
 import logging
 from collections import defaultdict
 from datetime import datetime as dt
-from decimal import Decimal, getcontext, ROUND_HALF_UP
+from decimal import Decimal
 from parser.constants import (
     CREATE_DATES_TABLE,
     CREATE_PRODUCTS_TABLE,
     CREATE_SALES_TABLE,
     CREATE_STOCKS_TABLE,
+    DECIMAL_ROUNDING,
     INSERT_DATES,
     INSERT_PRODUCTS,
     INSERT_SALES,
@@ -18,7 +19,6 @@ from parser.decorators import connection_db
 from parser.exceptions import RefTableError, TableNameError, TypeDataError
 from parser.logging_config import setup_logging
 
-getcontext().rounding = ROUND_HALF_UP
 setup_logging()
 
 
@@ -139,11 +139,11 @@ class WbDataBaseClient:
                 sales_by_article[article] += 1
 
         for article, total_sales in sales_by_article.items():
-            avg_per_day = Decimal(total_sales) / TWO_WEEK
+            avg_per_day = Decimal(total_sales) / Decimal(TWO_WEEK)
             avg_sales.append({
                 'дата': date_str,
                 'артикул': article,
-                'среднее значение': round(avg_per_day)
+                'среднее значение': round(avg_per_day, DECIMAL_ROUNDING)
             })
         return avg_sales
 

@@ -1,6 +1,7 @@
 import pytest
-from unittest.mock import patch, MagicMock
 from datetime import date
+from decimal import Decimal
+from unittest.mock import patch, MagicMock
 from parser.exceptions import RefTableError, TableNameError, TypeDataError
 from parser.wb_db import WbDataBaseClient
 
@@ -34,9 +35,13 @@ def test_parse_avg_sales(db_client):
     assert result[1]['артикул'] in [12345, 67890]
     for item in result:
         if item['артикул'] == 12345:
-            assert item['среднее значение'] == 2 // 14
+            assert item['среднее значение'] == round(
+                Decimal(2) / Decimal(14), 2
+            )
         else:
-            assert item['среднее значение'] == 1 // 14
+            assert item['среднее значение'] == round(
+                Decimal(1) / Decimal(14), 2
+            )
 
 
 def test_validate_date_db(db_client):

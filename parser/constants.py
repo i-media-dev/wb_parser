@@ -9,6 +9,9 @@ WB_AVG_SALES = 'https://statistics-api.wildberries.ru/api/v1/supplier/orders'
 NAME_OF_SHOP = 'loweis'
 TOKENS_TABLE_NAME = 'tokens'
 
+"""Округление до указанного количества знаков после точки."""
+DECIMAL_ROUNDING = 2
+
 """Константы, регулирующие запрос к API."""
 DATA_PAGE_LIMIT = 100
 TWO_WEEK = 14
@@ -62,7 +65,7 @@ CREATE_SALES_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name} (
     `date` date NOT NULL,
     `article` bigint(20) unsigned NOT NULL,
-    `sale` int(11) DEFAULT '0',
+    `sale` float DEFAULT '0',
     PRIMARY KEY (`date`,`article`),
     KEY `article` (`article`),
     CONSTRAINT `fk_{table_name}_date` FOREIGN KEY (

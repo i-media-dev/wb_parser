@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime as dt, timedelta
 from dotenv import load_dotenv
+from parser.constants import NAME_OF_SHOP
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.wb_db import WbDataBaseClient
@@ -180,9 +181,37 @@ def export_data(
     client.save_to_json(all_data, date_str)
 
 
-def main_logic(token_client, date_start: str = '', date_end: str = ''):
+def main_logic(
+    token_client,
+    all_shops: bool = True,
+    date_start: str = '',
+    date_end: str = ''
+) -> None:
+    """
+    Функция основной логики скрипта.
+    Принимает на входи аргументы:
+    - token_client = WBTokensClient() (обязательный).
+    - all_shops - по умолчанию True (выполняется для всех магазинов бд),
+    устанавливается False для выполнения скрипта для одного
+    тестового магазина (опциональный).
+    - date_start - принимает начальную дату формата 'YYYY-MM-DD' для выгрузки
+    данных за определенный период (опциональный).
+    - date_end - принимает конечную дату формата 'YYYY-MM-DD' для выгрузки
+    данных за определенный период (опциональный).
+
+    Выполняет последовательность операций:
+    1. Инициализация компонентов (БД клиент, API клиент).
+    2. Получение данных из API Wildberries.
+    3. Обработка и форматирование данных.
+    4. Сохранение данных в базу данных.
+    5. Выполнение скрипта только для тестового магазина (опционально).
+    6. Выгрузка данных за период (опционально).
+    """
     date_str = (dt.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-    for shop_name in token_client.get_exists_shop():
+    shops = token_client.get_exists_shop()
+    if not all_shops:
+        shops = [NAME_OF_SHOP]
+    for shop_name in shops:
         token = token_client.decrypt(shop_name)
         client = WbAnalyticsClient(token)
         db_client = WbDataBaseClient(shop_name)
