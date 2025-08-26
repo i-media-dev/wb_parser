@@ -6,6 +6,7 @@ import mysql.connector
 from parser.db_config import config
 from parser.logging_config import setup_logging
 
+
 setup_logging()
 
 
