@@ -1,6 +1,7 @@
+import functools
 import logging
 import time
-
+from datetime import datetime as dt
 import mysql.connector
 from parser.db_config import config
 from parser.logging_config import setup_logging
@@ -68,4 +69,40 @@ def connection_db(func):
         finally:
             cursor.close()
             connection.close()
+    return wrapper
+
+
+def time_of_script(func):
+    """Декортаор для измерения времени работы всего приложения."""
+    @functools.wraps(func)
+    def wrapper():
+        print(f'Функция main начала работу в {dt.now().strftime("%H:%M:%S")}')
+        start_time = time.time()
+        try:
+            result = func()
+            execution_time = round(time.time() - start_time, 3)
+            print(
+                'Функция main завершила '
+                f'работу в {dt.now().strftime("%H:%M:%S")}.'
+                f' Время выполнения - {execution_time} сек. '
+                f'или {round(execution_time / 60, 2)} мин.'
+            )
+            logging.info('SCRIPT_FINISHED_STATUS=SUCCESS')
+            logging.info(f'EXECUTION_TIME={execution_time} сек')
+            logging.info(f'FUNCTION_NAME={func.__name__}')
+            return result
+        except Exception as e:
+            execution_time = round(time.time() - start_time, 3)
+            print(
+                'Функция main завершилась '
+                f'с ошибкой в {dt.now().strftime("%H:%M:%S")}. '
+                f'Время выполнения - {execution_time} сек. '
+                f'Ошибка: {e}'
+            )
+            logging.info('SCRIPT_FINISHED_STATUS=ERROR')
+            logging.info(f'EXECUTION_TIME={execution_time} сек')
+            logging.info(f'ERROR_TYPE={type(e).__name__}')
+            logging.info(f'ERROR_MESSAGE={str(e)}')
+            logging.info(f'FUNCTION_NAME={func.__name__}')
+            raise
     return wrapper

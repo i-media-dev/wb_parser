@@ -1,8 +1,7 @@
 from dotenv import load_dotenv
 import logging
-import time
 import requests
-from parser.decorators import time_of_function
+from parser.decorators import time_of_function, time_of_script
 from parser.logging_config import setup_logging
 from parser.wb_token import WBTokensClient
 from parser.utils import main_logic
@@ -11,6 +10,7 @@ from parser.utils import main_logic
 setup_logging()
 
 
+@time_of_script
 @time_of_function
 def main():
     """
@@ -50,12 +50,4 @@ def main():
 
 
 if __name__ == '__main__':
-    start_time = time.time()
-    print('Функция main начала работу')
     main()
-    execution_time = round(time.time() - start_time, 3)
-    print(
-        'Функция main завершила работу. '
-        f'Время выполнения - {execution_time} сек. '
-        f'или {round(execution_time / 60, 2)} мин.'
-    )
