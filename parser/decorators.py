@@ -77,7 +77,9 @@ def time_of_script(func):
     """Декортаор для измерения времени работы всего приложения."""
     @functools.wraps(func)
     def wrapper():
-        print(f'Функция main начала работу в {dt.now().strftime("%H:%M:%S")}')
+        date_str = dt.now().strftime('%Y-%m-%d')
+        time_str = dt.now().strftime('%H:%M:%S')
+        print(f'Функция main начала работу {date_str} в {time_str}')
         start_time = time.time()
         try:
             result = func()
@@ -89,6 +91,7 @@ def time_of_script(func):
                 f'или {round(execution_time / 60, 2)} мин.'
             )
             logging.info('SCRIPT_FINISHED_STATUS=SUCCESS')
+            logging.info(f'DATE={date_str}')
             logging.info(f'EXECUTION_TIME={execution_time} сек')
             logging.info(f'FUNCTION_NAME={func.__name__}')
             return result
@@ -101,6 +104,7 @@ def time_of_script(func):
                 f'Ошибка: {e}'
             )
             logging.info('SCRIPT_FINISHED_STATUS=ERROR')
+            logging.info(f'DATE={date_str}')
             logging.info(f'EXECUTION_TIME={execution_time} сек')
             logging.info(f'ERROR_TYPE={type(e).__name__}')
             logging.info(f'ERROR_MESSAGE={str(e)}')
