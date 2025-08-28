@@ -81,5 +81,5 @@ jobs:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
         message: |
-          /deploy_success 
-          Деплой wb_parser успешно выполнен!
+          DEPLOY wb_parser 
+          ✅ Деплой wb_parser успешно выполнен!
