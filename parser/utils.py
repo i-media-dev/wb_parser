@@ -218,10 +218,16 @@ def main_logic(
         if not date_start and not date_end:
             all_sales, all_data = fetch_data(client, date_str)
             formatter_sales, formatter_data = process_data(
-                db_client, all_sales, all_data, date_str
+                db_client,
+                all_sales,
+                all_data,
+                date_str
             )
-            save_to_database(db_client, date_str,
-                             formatter_data, formatter_sales)
+            save_to_database(
+                db_client,
+                date_str,
+                formatter_data, formatter_sales
+            )
             token_client.encrypt(shop_name, token)
         else:
             all_data_for_period(
