@@ -1,36 +1,38 @@
 class TypeDataError(ValueError):
+    """Ошибка типа данных."""
     def __str__(self):
         return 'Invalid type data'
 
 
 class RefTableError(ValueError):
+    """Ошибка (отсутствие) таблицы для ссылки."""
     def __str__(self):
         return 'References table is not exist'
 
 
 class TableNameError(ValueError):
-    pass
+    """Ошибка (отсутствие) таблицы в бд."""
 
 
 class SizeTokenError(ValueError):
-    pass
+    """Ошибка размера токена."""
 
 
 class VerificationError(ValueError):
-    pass
+    """Ошибка верификации токена."""
 
 
 class EmptyTokenError(ValueError):
-    pass
+    """Ошибка (отсутствие) токена."""
 
 
 class BinaryTokenError(ValueError):
-    pass
+    """Ошибка типа данных токена."""
 
 
 class ModelTokenError(ValueError):
-    pass
+    """Ошибка (отсутствие) таблицы токенов в бд."""
 
 
 class EnvFileError(ValueError):
-    pass
+    """Ошибка (отсутствие) переменныъ окружения."""
