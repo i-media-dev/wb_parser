@@ -45,8 +45,10 @@ def main():
 
     except requests.RequestException as e:
         logging.error(f'❌ Ошибка запроса: {e}')
+        raise
     except Exception as e:
         logging.error(f'❌ Неожиданная ошибка: {e}')
+        raise
 
 
 if __name__ == '__main__':

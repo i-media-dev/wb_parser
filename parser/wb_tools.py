@@ -116,7 +116,6 @@ class WbAnalyticsClient:
         all_data = []
         current_date = start_date
 
-        logging.debug('Функция начала работу')
         while True:
             try:
                 result = self._get_sale_report(current_date)
@@ -170,7 +169,6 @@ class WbAnalyticsClient:
         offset = 0
         all_data = []
 
-        logging.debug('Функция начала работу')
         while True:
             try:
                 result = self._get_stock_report(
