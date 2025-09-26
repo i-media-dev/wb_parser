@@ -1,29 +1,30 @@
-"""URLs для получения данных из внешнего API."""
 WB_PRODUCT_DATA = (
     'https://seller-analytics-api.wildberries.ru/'
     'api/v2/stocks-report/products/products'
 )
+"""URL для получения данных из внешнего API об остатках."""
+
 WB_AVG_SALES = 'https://statistics-api.wildberries.ru/api/v1/supplier/orders'
+"""URL для получения данных из внешнего API о продажах."""
 
-"""Константы дефолтных названий для магазина и модели токенов"""
 NAME_OF_SHOP = 'loweis'
+"""Дефолтное название для тестового магазина."""
+
 TOKENS_TABLE_NAME = 'tokens'
+"""Дефолтное назвние таблицы токенов."""
 
-"""Округление до указанного количества знаков после точки."""
 DECIMAL_ROUNDING = 2
+"""Округление до указанного количества знаков после точки."""
 
-"""Константы, регулирующие запрос к API."""
 DATA_PAGE_LIMIT = 100
-TWO_WEEK = 14
+"""Пагинация. Лимит данных на страницу."""
 
-"""
-Максимальный размер в байтах,
-который может храниться в модели токенов.
-"""
+DAYS = 14
+"""Количество дней."""
+
 MAX_BYTE_SIZE = 1024
+"""Максимальный размер токена в байтах."""
 
-"""SQL запросы для взаимодейсвтия с базой данных MySQL."""
-# запросы на создание таблиц.
 CREATE_TOKEN_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name_token} (
     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -33,6 +34,7 @@ CREATE_TOKEN_TABLE = '''
     UNIQUE KEY `shop_name` (`shop_name`)
 );
 '''
+"""SQL запрос для создания модели токенов."""
 
 CREATE_DATES_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name} (
@@ -51,6 +53,8 @@ CREATE_DATES_TABLE = '''
     KEY `year_2` (`year`,`month`,`day`)
 );
 '''
+"""SQL запрос для создания модели дат."""
+
 CREATE_PRODUCTS_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name} (
     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -61,6 +65,8 @@ CREATE_PRODUCTS_TABLE = '''
     FULLTEXT KEY `name` (`name`)
 );
 '''
+"""SQL запрос для создания модели продуктов."""
+
 CREATE_SALES_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name} (
     `date` date NOT NULL,
@@ -75,6 +81,8 @@ CREATE_SALES_TABLE = '''
     ) ON DELETE CASCADE ON UPDATE CASCADE
 );
 '''
+"""SQL запрос для создания модели продаж."""
+
 CREATE_STOCKS_TABLE = '''
     CREATE TABLE IF NOT EXISTS {table_name} (
     `date` date NOT NULL,
@@ -94,8 +102,8 @@ CREATE_STOCKS_TABLE = '''
     ) ON DELETE CASCADE ON UPDATE CASCADE
 );
 '''
+"""SQL запрос для создания модели остатков."""
 
-# запросы заполнения таблиц данными.
 INSERT_DATES = '''
     INSERT INTO {table_name} (
     full_date,
@@ -107,6 +115,7 @@ INSERT_DATES = '''
     VALUES (%s, %s, %s, %s, %s)
     ON DUPLICATE KEY UPDATE id = id
 '''
+"""SQL запрос для наполнения данными модели дат."""
 
 INSERT_PRODUCTS = '''
     INSERT INTO {table_name} (article, name)
@@ -114,6 +123,7 @@ INSERT_PRODUCTS = '''
     ON DUPLICATE KEY UPDATE
     name = VALUES(name)
 '''
+"""SQL запрос для наполнения данными модели продуктов."""
 
 INSERT_STOCKS = '''
     INSERT INTO {table_name} (date, article, stock)
@@ -121,6 +131,7 @@ INSERT_STOCKS = '''
     ON DUPLICATE KEY UPDATE
     stock = VALUES(stock)
 '''
+"""SQL запрос для наполнения данными модели остатков."""
 
 INSERT_SALES = '''
     INSERT INTO {table_name} (date, article, sale)
@@ -128,6 +139,7 @@ INSERT_SALES = '''
     ON DUPLICATE KEY UPDATE
     sale = VALUES(sale)
 '''
+"""SQL запрос для наполнения данными модели продаж."""
 
 INSERT_TOKEN = '''
     INSERT INTO {table_name_token} (shop_name, token)
@@ -135,3 +147,4 @@ INSERT_TOKEN = '''
     ON DUPLICATE KEY UPDATE
     token = VALUES(token)
 '''
+"""SQL запрос для наполнения данными модели токенов."""

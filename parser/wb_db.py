@@ -13,7 +13,7 @@ from parser.constants import (
     INSERT_SALES,
     INSERT_STOCKS,
     NAME_OF_SHOP,
-    TWO_WEEK
+    DAYS
 )
 from parser.decorators import connection_db
 from parser.exceptions import RefTableError, TableNameError, TypeDataError
@@ -139,7 +139,7 @@ class WbDataBaseClient:
                 sales_by_article[article] += 1
 
         for article, total_sales in sales_by_article.items():
-            avg_per_day = Decimal(total_sales) / Decimal(TWO_WEEK)
+            avg_per_day = Decimal(total_sales) / Decimal(DAYS)
             avg_sales.append({
                 'дата': date_str,
                 'артикул': article,

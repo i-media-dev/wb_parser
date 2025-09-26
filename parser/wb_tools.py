@@ -6,7 +6,7 @@ from datetime import datetime as dt, timedelta
 import requests
 from parser.constants import (
     DATA_PAGE_LIMIT,
-    TWO_WEEK,
+    DAYS,
     WB_AVG_SALES,
     WB_PRODUCT_DATA
 )
@@ -111,7 +111,7 @@ class WbAnalyticsClient:
         """
         date_formatted = dt.strptime(date_str, "%Y-%m-%d").date()
         start_date = (
-            date_formatted - timedelta(days=TWO_WEEK)
+            date_formatted - timedelta(days=DAYS)
         ).strftime('%Y-%m-%d')
         all_data = []
         current_date = start_date
@@ -170,6 +170,7 @@ class WbAnalyticsClient:
         all_data = []
 
         while True:
+            attempts = 0
             try:
                 result = self._get_stock_report(
                     start_date, end_date, offset=offset, limit=limit)
@@ -186,6 +187,13 @@ class WbAnalyticsClient:
                     logging.warning(
                         '⏳ Сервер временно недоступен (503). Ждём 20 секунд...'
                     )
+                    if attempts > 10:
+                        logging.error(
+                            'Количество попыток превысило допустимую квоту. '
+                            f'Ответ сервера: {e.response.status_code}'
+                        )
+                        raise
+                    attempts += 1
                     time.sleep(20)
                     continue
                 else:
