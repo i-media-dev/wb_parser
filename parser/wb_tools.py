@@ -138,7 +138,7 @@ class WbAnalyticsClient:
                     logging.warning(
                         '⏳ Сервер временно недоступен '
                         f'({e.response.status_code}). '
-                        f'Попытка {attempts/MAX_RETRYING}. '
+                        f'Попытка {attempts}/{MAX_RETRYING}. '
                         'Ждём 60 секунд...'
                     )
                     if attempts > MAX_RETRYING:
@@ -207,7 +207,7 @@ class WbAnalyticsClient:
                     logging.warning(
                         '⏳ Сервер временно недоступен '
                         f'({e.response.status_code}). '
-                        f'Попытка {attempts/MAX_RETRYING}. '
+                        f'Попытка {attempts}/{MAX_RETRYING}. '
                         'Ждём 20 секунд...'
                     )
                     if attempts > MAX_RETRYING:
