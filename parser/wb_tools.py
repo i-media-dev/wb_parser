@@ -111,7 +111,7 @@ class WbAnalyticsClient:
         Метод, формирующий запрос к API Wildberries
         с учетом пагинации.
         """
-        date_formatted = dt.strptime(date_str, "%Y-%m-%d").date()
+        date_formatted = dt.strptime(date_str, DATE_FORMAT).date()
         start_date = (
             date_formatted - timedelta(days=DAYS)
         ).strftime(DATE_FORMAT)
