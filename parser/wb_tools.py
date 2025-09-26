@@ -6,7 +6,9 @@ from datetime import datetime as dt, timedelta
 import requests
 from parser.constants import (
     DATA_PAGE_LIMIT,
+    DATE_FORMAT,
     DAYS,
+    MAX_RETRYING,
     WB_AVG_SALES,
     WB_PRODUCT_DATA
 )
@@ -112,9 +114,10 @@ class WbAnalyticsClient:
         date_formatted = dt.strptime(date_str, "%Y-%m-%d").date()
         start_date = (
             date_formatted - timedelta(days=DAYS)
-        ).strftime('%Y-%m-%d')
+        ).strftime(DATE_FORMAT)
         all_data = []
         current_date = start_date
+        attempts = 0
 
         while True:
             try:
@@ -127,17 +130,31 @@ class WbAnalyticsClient:
                     )
                     time.sleep(60)
                     continue
-                elif e.response.status_code == \
-                        requests.codes.service_unavailable:
+                elif e.response.status_code in (
+                    requests.codes.service_unavailable,
+                    requests.codes.bad_gateway
+                ):
+                    attempts += 1
                     logging.warning(
-                        '⏳ Сервер временно недоступен (503). Ждём 20 секунд...'
+                        '⏳ Сервер временно недоступен '
+                        f'({e.response.status_code}). '
+                        f'Попытка {attempts/MAX_RETRYING}. '
+                        'Ждём 60 секунд...'
                     )
+                    if attempts > MAX_RETRYING:
+                        logging.error(
+                            'Сервер недоступен. '
+                            'Количество попыток превысило допустимую квоту. '
+                            f'Ответ сервера: {e.response.status_code}'
+                        )
+                        raise
                     time.sleep(60)
                     continue
                 else:
                     logging.error(
                         f'Код ответа сервера: {e.response.status_code}')
                     raise
+            attempts = 0
             if not result:
                 logging.info('✅ Все страницы загружены.')
                 break
@@ -145,7 +162,7 @@ class WbAnalyticsClient:
                 sale for sale in result
                 if (
                     start_date <= sale['date'][:10] <= date_formatted.strftime(
-                        '%Y-%m-%d'
+                        DATE_FORMAT
                     )
                 )
             ]
@@ -168,9 +185,9 @@ class WbAnalyticsClient:
         """
         offset = 0
         all_data = []
+        attempts = 0
 
         while True:
-            attempts = 0
             try:
                 result = self._get_stock_report(
                     start_date, end_date, offset=offset, limit=limit)
@@ -182,24 +199,31 @@ class WbAnalyticsClient:
                     )
                     time.sleep(60)
                     continue
-                elif e.response.status_code == \
-                        requests.codes.service_unavailable:
+                elif e.response.status_code in (
+                    requests.codes.service_unavailable,
+                    requests.codes.bad_gateway
+                ):
+                    attempts += 1
                     logging.warning(
-                        '⏳ Сервер временно недоступен (503). Ждём 20 секунд...'
+                        '⏳ Сервер временно недоступен '
+                        f'({e.response.status_code}). '
+                        f'Попытка {attempts/MAX_RETRYING}. '
+                        'Ждём 20 секунд...'
                     )
-                    if attempts > 10:
+                    if attempts > MAX_RETRYING:
                         logging.error(
+                            'Сервер недоступен. '
                             'Количество попыток превысило допустимую квоту. '
                             f'Ответ сервера: {e.response.status_code}'
                         )
                         raise
-                    attempts += 1
                     time.sleep(20)
                     continue
                 else:
                     logging.error(
                         f'Код ответа сервера: {e.response.status_code}')
                     raise
+            attempts = 0
             data = result.get('data', [])
             if not data['items']:
                 logging.info('✅ Все страницы загружены.')

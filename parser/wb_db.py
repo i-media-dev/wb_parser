@@ -7,6 +7,7 @@ from parser.constants import (
     CREATE_PRODUCTS_TABLE,
     CREATE_SALES_TABLE,
     CREATE_STOCKS_TABLE,
+    DATE_FORMAT,
     DECIMAL_ROUNDING,
     INSERT_DATES,
     INSERT_PRODUCTS,
@@ -153,7 +154,7 @@ class WbDataBaseClient:
         день, месяц, год и день недели. Готовит SQL-запрос и параметры
         для сохранения в базу данных.
         """
-        date = dt.strptime(date_str, '%Y-%m-%d').date()
+        date = dt.strptime(date_str, DATE_FORMAT).date()
         day = date.day
         month = date.month
         year = date.year

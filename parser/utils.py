@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime as dt, timedelta
 from dotenv import load_dotenv
-from parser.constants import NAME_OF_SHOP
+from parser.constants import DATE_FORMAT, NAME_OF_SHOP
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.wb_db import WbDataBaseClient
@@ -34,7 +34,7 @@ def initialize_components() -> tuple:
         raise ValueError('Токен отсутствует или устарел.')
     client = WbAnalyticsClient(token)
     db_client = WbDataBaseClient()
-    date_str = (dt.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    date_str = (dt.now() - timedelta(days=1)).strftime(DATE_FORMAT)
     return db_client, client, date_str
 
 
@@ -136,11 +136,11 @@ def all_data_for_period(
         - start_date (str): Начальная дата периода.
         - end_date (str): Конечная дата периода.
     """
-    fdate_start = dt.strptime(start_date, '%Y-%m-%d').date()
-    fdate_end = dt.strptime(end_date, '%Y-%m-%d').date()
+    fdate_start = dt.strptime(start_date, DATE_FORMAT).date()
+    fdate_end = dt.strptime(end_date, DATE_FORMAT).date()
     days = (fdate_end - fdate_start).days + 1
     date_list = [fdate_start + timedelta(days=i) for i in range(days)]
-    date_str_list = [d.strftime('%Y-%m-%d') for d in date_list]
+    date_str_list = [d.strftime(DATE_FORMAT) for d in date_list]
     for date in date_str_list:
         stocks = client.get_all_stock_reports(start_date=date, end_date=date)
         slaes = client.get_all_sales_reports(date_str=date)
@@ -207,7 +207,7 @@ def main_logic(
     5. Выполнение скрипта только для тестового магазина (опционально).
     6. Выгрузка данных за период (опционально).
     """
-    date_str = (dt.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    date_str = (dt.now() - timedelta(days=1)).strftime(DATE_FORMAT)
     shops = token_client.get_exists_shop()
     if not all_shops:
         shops = [NAME_OF_SHOP]
