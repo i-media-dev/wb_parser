@@ -154,14 +154,18 @@ class WbDataBaseClient:
         день, месяц, год и день недели. Готовит SQL-запрос и параметры
         для сохранения в базу данных.
         """
-        date = dt.strptime(date_str, DATE_FORMAT).date()
-        day = date.day
-        month = date.month
-        year = date.year
-        weekday = date.isoweekday()
-        table_name = self._create_table_if_not_exist('catalog', 'dates')
-        query = INSERT_DATES.format(table_name=table_name)
-        return query, (date, day, month, year, weekday)
+        try:
+            date = dt.strptime(date_str, DATE_FORMAT).date()
+            day = date.day
+            month = date.month
+            year = date.year
+            weekday = date.isoweekday()
+            table_name = self._create_table_if_not_exist('catalog', 'dates')
+            query = INSERT_DATES.format(table_name=table_name)
+            return query, (date, day, month, year, weekday)
+        except Exception as e:
+            logging.error(f'Ошибка во время валидации date: {e}')
+            raise
 
     def validate_products_db(self, data: list) -> tuple:
         """
@@ -169,10 +173,14 @@ class WbDataBaseClient:
         полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
-        table_name = self._create_table_if_not_exist('catalog', 'products')
-        query = INSERT_PRODUCTS.format(table_name=table_name)
-        params = [(item['артикул'], item['наименование']) for item in data]
-        return query, params
+        try:
+            table_name = self._create_table_if_not_exist('catalog', 'products')
+            query = INSERT_PRODUCTS.format(table_name=table_name)
+            params = [(item['артикул'], item['наименование']) for item in data]
+            return query, params
+        except Exception as e:
+            logging.error(f'Ошибка во время валидации products: {e}')
+            raise
 
     def validate_stocks_db(self, data: list) -> tuple:
         """
@@ -180,16 +188,22 @@ class WbDataBaseClient:
         полученные из метода parse_product_data.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
-        date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-        table_name = self._create_table_if_not_exist(
-            'reports',
-            'stocks',
-            ref_dates_table=f'catalog_dates_{self.shop_name}',
-            ref_products_table=f'catalog_products_{self.shop_name}'
-        )
-        query = INSERT_STOCKS.format(table_name=table_name)
-        params = [(date, item['артикул'], item['остаток']) for item in data]
-        return query, params
+        try:
+            date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
+            table_name = self._create_table_if_not_exist(
+                'reports',
+                'stocks',
+                ref_dates_table=f'catalog_dates_{self.shop_name}',
+                ref_products_table=f'catalog_products_{self.shop_name}'
+            )
+            query = INSERT_STOCKS.format(table_name=table_name)
+            params = [
+                (date, item['артикул'], item['остаток']) for item in data
+            ]
+            return query, params
+        except Exception as e:
+            logging.error(f'Ошибка во время валидации stocks: {e}')
+            raise
 
     def validate_sales_db(self, data: list) -> tuple:
         """
@@ -197,18 +211,26 @@ class WbDataBaseClient:
         полученные из метода parse_avg_sales.
         Готовит SQL-запрос и параметры для сохранения в базу данных.
         """
-        date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
-        table_name = self._create_table_if_not_exist(
-            'reports',
-            'sales',
-            ref_dates_table=f'catalog_dates_{self.shop_name}',
-            ref_products_table=f'catalog_products_{self.shop_name}'
-        )
-        query = INSERT_SALES.format(table_name=table_name)
-        params = [
-            (date, item['артикул'], item['среднее значение']) for item in data
-        ]
-        return query, params
+        try:
+            date = dt.strptime(data[0].get('дата'), "%Y-%m-%d").date()
+            table_name = self._create_table_if_not_exist(
+                'reports',
+                'sales',
+                ref_dates_table=f'catalog_dates_{self.shop_name}',
+                ref_products_table=f'catalog_products_{self.shop_name}'
+            )
+            query = INSERT_SALES.format(table_name=table_name)
+            params = [
+                (
+                    date,
+                    item['артикул'],
+                    item['среднее значение']
+                ) for item in data
+            ]
+            return query, params
+        except Exception as e:
+            logging.error(f'Ошибка во время валидации sales: {e}')
+            raise
 
     @connection_db
     def save_to_db(
@@ -217,12 +239,16 @@ class WbDataBaseClient:
         cursor=None
     ) -> None:
         """Метод сохраняется обработанные данные в базу данных."""
-        query, params = query_data
-        if isinstance(params, list):
-            cursor.executemany(query, params)
-        else:
-            cursor.execute(query, params)
-        logging.info('✅ Данные успешно сохранены!')
+        try:
+            query, params = query_data
+            if isinstance(params, list):
+                cursor.executemany(query, params)
+            else:
+                cursor.execute(query, params)
+            logging.info('✅ Данные успешно сохранены!')
+        except Exception as e:
+            logging.error(f'Ошибка во время сохранения: {e}')
+            raise
 
     @connection_db
     def clean_db(self, cursor=None, **tables: bool) -> None:

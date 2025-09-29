@@ -226,7 +226,8 @@ def main_logic(
             save_to_database(
                 db_client,
                 date_str,
-                formatter_data, formatter_sales
+                formatter_data,
+                formatter_sales
             )
             token_client.encrypt(shop_name, token)
         else:

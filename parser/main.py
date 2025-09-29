@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import logging
 import requests
 from parser.decorators import time_of_function, time_of_script
+from parser.exceptions import DataFetchError
 from parser.logging_config import setup_logging
 from parser.wb_token import WBTokensClient
 from parser.utils import main_logic
@@ -42,7 +43,9 @@ def main():
         #     all_data,
         #     all_sales
         # )
-
+    except DataFetchError as e:
+        logging.error(f'Не удалось получить данные: {e}')
+        raise
     except requests.RequestException as e:
         logging.error(f'❌ Ошибка запроса: {e}')
         raise

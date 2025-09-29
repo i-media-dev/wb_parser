@@ -13,6 +13,7 @@ from parser.constants import (
     WB_PRODUCT_DATA
 )
 from parser.decorators import time_of_function
+from parser.exceptions import DataFetchError
 from parser.logging_config import setup_logging
 
 
@@ -45,19 +46,27 @@ class WbAnalyticsClient:
         Защищенный метод, формирующий запрос к API Wildberries
         без учета пагинации.
         """
-        params = {
-            "dateFrom": date
-        }
-        response = requests.get(
-            self.AVG_SALES_URL,
-            headers=self.headers,
-            params=params
-        )
-        logging.info(
-            f'\n[{response.status_code}]'
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            params = {
+                "dateFrom": date
+            }
+            response = requests.get(
+                self.AVG_SALES_URL,
+                headers=self.headers,
+                params=params
+            )
+            logging.info(
+                f'Запрос отчета о продажах. URL: {self.AVG_SALES_URL}, '
+                f'Статус: {response.status_code}, '
+                f'Дата: {date}'
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f'Ошибка при получении данных: {e}')
+            raise DataFetchError(
+                f'Не удалось получить данные sales: {e}'
+            ) from e
 
     def _get_stock_report(
         self,
@@ -70,40 +79,49 @@ class WbAnalyticsClient:
         Защищенный метод, формирующий запрос к API Wildberries
         без учета пагинации.
         """
-        payload = {
-            "stockType": "",
-            "currentPeriod": {
-                "start": start_date,
-                "end": end_date
-            },
-            "skipDeletedNm": True,
-            "orderBy": {
-                "field": "minPrice",
-                "mode": "asc"
-            },
-            "limit": limit,
-            "offset": offset,
-            "availabilityFilters": [
-                "deficient",
-                "actual",
-                "balanced",
-                "nonActual",
-                "nonLiquid",
-                "invalidData"
-            ]
-        }
+        try:
+            payload = {
+                "stockType": "",
+                "currentPeriod": {
+                    "start": start_date,
+                    "end": end_date
+                },
+                "skipDeletedNm": True,
+                "orderBy": {
+                    "field": "minPrice",
+                    "mode": "asc"
+                },
+                "limit": limit,
+                "offset": offset,
+                "availabilityFilters": [
+                    "deficient",
+                    "actual",
+                    "balanced",
+                    "nonActual",
+                    "nonLiquid",
+                    "invalidData"
+                ]
+            }
 
-        response = requests.post(
-            self.PRODUCT_DATA_URL,
-            headers=self.headers,
-            json=payload
-        )
+            response = requests.post(
+                self.PRODUCT_DATA_URL,
+                headers=self.headers,
+                json=payload
+            )
 
-        logging.info(
-            f'\n[{response.status_code}], limit={limit}, offset={offset}'
-        )
-        response.raise_for_status()
-        return response.json()
+            logging.info(
+                f'Запрос отчета об остатках. URL: {self.PRODUCT_DATA_URL}, '
+                f'Статус: {response.status_code}, \n'
+                f'limit={limit}, '
+                f'offset={offset}'
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f'Ошибка при получении данных: {e}')
+            raise DataFetchError(
+                f'Не удалось получить данные stocks: {e}'
+            ) from e
 
     @time_of_function
     def get_all_sales_reports(self, date_str: str) -> list[dict]:
@@ -224,8 +242,11 @@ class WbAnalyticsClient:
                         f'Код ответа сервера: {e.response.status_code}')
                     raise
             attempts = 0
-            data = result.get('data', [])
-            if not data['items']:
+            if not result or 'data' not in result:
+                logging.warning('Данные из api не получены.')
+                break
+            data = result.get('data', {})
+            if not data.get['items', []]:
                 logging.info('✅ Все страницы загружены.')
                 break
             all_data.extend(data['items'])
