@@ -246,7 +246,7 @@ class WbAnalyticsClient:
                 logging.warning('Данные из api не получены.')
                 break
             data = result.get('data', {})
-            if not data.get['items', []]:
+            if not data.get('items', []):
                 logging.info('✅ Все страницы загружены.')
                 break
             all_data.extend(data['items'])

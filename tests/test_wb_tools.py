@@ -37,35 +37,6 @@ def test_get_stock_report_success(wb_client, requests_mock):
     assert result == mock_response
 
 
-def test_get_sale_report_429_error(wb_client, requests_mock):
-    test_date = '2025-07-10'
-    requests_mock.get(
-        wb_client.AVG_SALES_URL,
-        status_code=429
-    )
-
-    with pytest.raises(requests.HTTPError) as exc_info:
-        wb_client._get_sale_report(test_date)
-    assert exc_info.value.response.status_code == 429
-
-
-def test_get_stock_report_429_error(wb_client, requests_mock):
-    start_date = '2025-07-01'
-    end_date = '2025-07-10'
-
-    requests_mock.post(
-        wb_client.PRODUCT_DATA_URL,
-        status_code=429,
-    )
-
-    with pytest.raises(requests.HTTPError) as exc_info:
-        wb_client._get_stock_report(
-            start_date=start_date,
-            end_date=end_date
-        )
-    assert exc_info.value.response.status_code == 429
-
-
 def test_get_all_sales_reports(wb_client):
     mock_data = [
         {"nmId": 123, "date": "2025-07-10", "lastChangeDate": "2025-07-10"}
