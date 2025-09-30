@@ -165,7 +165,7 @@ class WbDataBaseClient:
             return query, (date, day, month, year, weekday)
         except Exception as e:
             logging.error(f'Ошибка во время валидации date: {e}')
-            raise
+            return None, None
 
     def validate_products_db(self, data: list) -> tuple:
         """
@@ -180,7 +180,7 @@ class WbDataBaseClient:
             return query, params
         except Exception as e:
             logging.error(f'Ошибка во время валидации products: {e}')
-            raise
+            return None, None
 
     def validate_stocks_db(self, data: list) -> tuple:
         """
@@ -203,7 +203,7 @@ class WbDataBaseClient:
             return query, params
         except Exception as e:
             logging.error(f'Ошибка во время валидации stocks: {e}')
-            raise
+            return None, None
 
     def validate_sales_db(self, data: list) -> tuple:
         """
@@ -230,17 +230,25 @@ class WbDataBaseClient:
             return query, params
         except Exception as e:
             logging.error(f'Ошибка во время валидации sales: {e}')
-            raise
+            return None, None
 
     @connection_db
     def save_to_db(
         self,
+        name_of_shop: str,
         query_data: tuple,
         cursor=None
     ) -> None:
         """Метод сохраняется обработанные данные в базу данных."""
         try:
             query, params = query_data
+            if not query or not params:
+                logging.warning(
+                    f'Данные для магазина {name_of_shop} '
+                    'не получены, получены частично или '
+                    'повреждены. Сохранение данных успешно провалилось'
+                )
+                return
             if isinstance(params, list):
                 cursor.executemany(query, params)
             else:

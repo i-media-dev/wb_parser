@@ -96,6 +96,7 @@ def process_data(
 
 def save_to_database(
     db_client: WbDataBaseClient,
+    name_of_shop: str,
     date_str: str,
     formatter_data: list[dict],
     formatter_sales: list[dict]
@@ -117,12 +118,13 @@ def save_to_database(
     ]
 
     for query in queries:
-        db_client.save_to_db(query)
+        db_client.save_to_db(name_of_shop, query)
 
 
 @time_of_function
 def all_data_for_period(
     client: WbAnalyticsClient,
+    name_of_shop: str,
     db_client: WbDataBaseClient,
     start_date: str,
     end_date: str
@@ -154,7 +156,7 @@ def all_data_for_period(
             db_client.validate_sales_db(data=parse_sales)
         ]
         for query in queries:
-            db_client.save_to_db(query)
+            db_client.save_to_db(name_of_shop, query)
 
 
 def export_data(
@@ -225,6 +227,7 @@ def main_logic(
             )
             save_to_database(
                 db_client,
+                shop_name,
                 date_str,
                 formatter_data,
                 formatter_sales
@@ -233,6 +236,7 @@ def main_logic(
         else:
             all_data_for_period(
                 client,
+                shop_name,
                 db_client,
                 start_date=date_start,
                 end_date=date_end
