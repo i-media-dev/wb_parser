@@ -1,13 +1,14 @@
 import logging
 import os
-from datetime import datetime as dt, timedelta
-from dotenv import load_dotenv
+from datetime import datetime as dt
+from datetime import timedelta
 from parser.constants import DATE_FORMAT, NAME_OF_SHOP
 from parser.decorators import time_of_function
 from parser.logging_config import setup_logging
 from parser.wb_db import WbDataBaseClient
 from parser.wb_tools import WbAnalyticsClient
 
+from dotenv import load_dotenv
 
 setup_logging()
 

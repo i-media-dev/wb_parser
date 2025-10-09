@@ -1,12 +1,12 @@
-from dotenv import load_dotenv
 import logging
-import requests
 from parser.decorators import time_of_function, time_of_script
 from parser.exceptions import DataFetchError
 from parser.logging_config import setup_logging
-from parser.wb_token import WBTokensClient
 from parser.utils import main_logic
+from parser.wb_token import WBTokensClient
 
+import requests
+from dotenv import load_dotenv
 
 setup_logging()
 

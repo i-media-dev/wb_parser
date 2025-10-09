@@ -2,20 +2,15 @@ import json
 import logging
 import os
 import time
-from datetime import datetime as dt, timedelta
-import requests
-from parser.constants import (
-    DATA_PAGE_LIMIT,
-    DATE_FORMAT,
-    DAYS,
-    MAX_RETRYING,
-    WB_AVG_SALES,
-    WB_PRODUCT_DATA
-)
+from datetime import datetime as dt
+from datetime import timedelta
+from parser.constants import (DATA_PAGE_LIMIT, DATE_FORMAT, DAYS, MAX_RETRYING,
+                              WB_AVG_SALES, WB_PRODUCT_DATA)
 from parser.decorators import time_of_function
 from parser.exceptions import DataFetchError
 from parser.logging_config import setup_logging
 
+import requests
 
 setup_logging()
 

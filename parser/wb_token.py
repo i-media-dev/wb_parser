@@ -1,24 +1,15 @@
 import logging
 import os
+from parser.constants import (CREATE_TOKEN_TABLE, INSERT_TOKEN, MAX_BYTE_SIZE,
+                              TOKENS_TABLE_NAME)
+from parser.decorators import connection_db
+from parser.exceptions import (BinaryTokenError, EmptyTokenError, EnvFileError,
+                               ModelTokenError, SizeTokenError,
+                               VerificationError)
+from parser.logging_config import setup_logging
 
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-from parser.constants import (
-    CREATE_TOKEN_TABLE,
-    INSERT_TOKEN,
-    MAX_BYTE_SIZE,
-    TOKENS_TABLE_NAME
-)
-from parser.decorators import connection_db
-from parser.exceptions import (
-    BinaryTokenError,
-    EmptyTokenError,
-    EnvFileError,
-    ModelTokenError,
-    SizeTokenError,
-    VerificationError
-)
-from parser.logging_config import setup_logging
 
 setup_logging()
 load_dotenv()

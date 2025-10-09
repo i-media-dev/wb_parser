@@ -2,11 +2,11 @@ import functools
 import logging
 import time
 from datetime import datetime as dt
-import mysql.connector
 from parser.constants import DATE_FORMAT, TIME_FORMAT
 from parser.db_config import config
 from parser.logging_config import setup_logging
 
+import mysql.connector
 
 setup_logging()
 

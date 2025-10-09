@@ -2,20 +2,11 @@ import logging
 from collections import defaultdict
 from datetime import datetime as dt
 from decimal import Decimal
-from parser.constants import (
-    CREATE_DATES_TABLE,
-    CREATE_PRODUCTS_TABLE,
-    CREATE_SALES_TABLE,
-    CREATE_STOCKS_TABLE,
-    DATE_FORMAT,
-    DECIMAL_ROUNDING,
-    INSERT_DATES,
-    INSERT_PRODUCTS,
-    INSERT_SALES,
-    INSERT_STOCKS,
-    NAME_OF_SHOP,
-    DAYS
-)
+from parser.constants import (CREATE_DATES_TABLE, CREATE_PRODUCTS_TABLE,
+                              CREATE_SALES_TABLE, CREATE_STOCKS_TABLE,
+                              DATE_FORMAT, DAYS, DECIMAL_ROUNDING,
+                              INSERT_DATES, INSERT_PRODUCTS, INSERT_SALES,
+                              INSERT_STOCKS, NAME_OF_SHOP)
 from parser.decorators import connection_db
 from parser.exceptions import RefTableError, TableNameError, TypeDataError
 from parser.logging_config import setup_logging
