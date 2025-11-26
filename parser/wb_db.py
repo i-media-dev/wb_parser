@@ -12,6 +12,7 @@ from parser.exceptions import RefTableError, TableNameError, TypeDataError
 from parser.logging_config import setup_logging
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 class WbDataBaseClient:
@@ -234,7 +235,7 @@ class WbDataBaseClient:
         try:
             query, params = query_data
             if not query or not params:
-                logging.warning(
+                logger.bot_event(
                     f'Данные для магазина {name_of_shop} '
                     'не получены, получены частично или '
                     'повреждены. Сохранение данных успешно провалилось'
@@ -244,7 +245,10 @@ class WbDataBaseClient:
                 cursor.executemany(query, params)
             else:
                 cursor.execute(query, params)
-            logging.info('✅ Данные успешно сохранены!')
+            logger.bot_event(
+                '✅ Данные для магазина %s успешно сохранены!',
+                name_of_shop
+            )
         except Exception as e:
             logging.error(f'Ошибка во время сохранения: {e}')
             raise

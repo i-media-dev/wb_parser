@@ -182,7 +182,6 @@ class WbAnalyticsClient:
             all_data.extend(filtered_result)
             current_date = result[-1]['lastChangeDate']
             time.sleep(60)
-        logging.debug('Функция завершила работу')
         return all_data
 
     @time_of_function
@@ -271,10 +270,8 @@ class WbAnalyticsClient:
         folder: str = 'data'
     ) -> None:
         """Отладочный метод сохраняет данные в файл формата json."""
-        logging.debug('Сохранение файла...')
         filename = WbAnalyticsClient._get_filename(
             'json', date_str, prefix, folder)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         logging.info(f'✅ Данные сохранены в {filename}')
-        logging.debug('Файл сохранен.')
