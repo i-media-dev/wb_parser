@@ -43,14 +43,14 @@ def main():
         #     all_data,
         #     all_sales
         # )
-    except DataFetchError as e:
-        logging.error(f'Не удалось получить данные: {e}')
+    except DataFetchError as error:
+        logging.error('Не удалось получить данные: %s', error)
         raise
-    except requests.RequestException as e:
-        logging.error(f'❌ Ошибка запроса: {e}')
+    except requests.RequestException as error:
+        logging.error('❌ Ошибка запроса: %s', error)
         raise
-    except Exception as e:
-        logging.error(f'❌ Неожиданная ошибка: {e}')
+    except Exception as error:
+        logging.error('❌ Неожиданная ошибка: %s', error)
         raise
 
 

@@ -60,14 +60,15 @@ class WBTokensClient:
         получает названия магазинов из базы данных.
         """
         if token_table_name in self._allowed_tables():
-            logging.info(f'Таблица токенов {token_table_name} найдена в базе')
+            logging.info('Таблица токенов %s найдена в базе', token_table_name)
         else:
             create_tokens_table_query = CREATE_TOKEN_TABLE.format(
                 table_name_token=token_table_name
             )
             cursor.execute(create_tokens_table_query)
             logging.info(
-                f'Таблица токенов {token_table_name} успешно создана'
+                'Таблица токенов %s успешно создана',
+                token_table_name
             )
             return []
         cursor.execute(f'SELECT shop_name FROM {token_table_name}')
@@ -101,9 +102,9 @@ class WBTokensClient:
                 raise SizeTokenError('Токен слишком большой для хранения')
             query = INSERT_TOKEN.format(table_name_token=token_table_name)
             cursor.execute(query, (shop_name, encrypted))
-        except Exception as e:
-            logging.error(f'Ошибка шифрования: {str(e)}')
-            raise ValueError(f'Не удалось сохранить токен: {str(e)}')
+        except Exception as error:
+            logging.error('Ошибка шифрования: %s', error)
+            raise ValueError(f'Не удалось сохранить токен: {str(error)}')
 
     @connection_db
     def decrypt(
@@ -128,5 +129,5 @@ class WBTokensClient:
             if not isinstance(row[0], bytes):
                 raise BinaryTokenError('Токен должен быть в бинарном формате')
             return cipher_suite.decrypt(row[0]).decode('utf-8')
-        except Exception as e:
-            raise ValueError(f'Ошибка дешифровки токена: {str(e)}')
+        except Exception as error:
+            raise ValueError(f'Ошибка дешифровки токена: {str(error)}')

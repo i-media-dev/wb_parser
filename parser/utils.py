@@ -60,9 +60,11 @@ def fetch_data(client: WbAnalyticsClient, date_str: str) -> tuple:
     all_sales = client.get_all_sales_reports(date_str)
     all_data = client.get_all_stock_reports(
         start_date=date_str, end_date=date_str)
-    logging.info(f'\n✅ Получено записей по остаткам: {len(all_data)}')
+    logging.info('\n✅ Получено записей по остаткам: %s', len(all_data))
     logging.info(
-        f'\n✅ Получено записей по продажам за 2 недели: {len(all_sales)}')
+        '\n✅ Получено записей по продажам за 2 недели: %s',
+        len(all_sales)
+    )
     return all_sales, all_data
 
 

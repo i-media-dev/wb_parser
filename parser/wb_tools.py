@@ -51,17 +51,21 @@ class WbAnalyticsClient:
                 params=params
             )
             logging.info(
-                f'Запрос отчета о продажах. URL: {self.AVG_SALES_URL}, '
-                f'Статус: {response.status_code}, '
-                f'Дата: {date}'
+                '\nЗапрос отчета о продажах.'
+                '\nURL: %s'
+                '\nСтатус: %s'
+                '\nДата: %s',
+                self.AVG_SALES_URL,
+                response.status_code,
+                date
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
-            logging.error(f'Ошибка при получении данных: {e}')
+        except Exception as error:
+            logging.error('Ошибка при получении данных: %s', error)
             raise DataFetchError(
-                f'Не удалось получить данные sales: {e}'
-            ) from e
+                f'Не удалось получить данные sales: {error}'
+            ) from error
 
     def _get_stock_report(
         self,
@@ -105,18 +109,23 @@ class WbAnalyticsClient:
             )
 
             logging.info(
-                f'Запрос отчета об остатках. URL: {self.PRODUCT_DATA_URL}, '
-                f'Статус: {response.status_code}, \n'
-                f'limit={limit}, '
-                f'offset={offset}'
+                '\nЗапрос отчета об остатках.'
+                '\nURL: %s'
+                '\nСтатус: %s'
+                '\nlimit=%s'
+                '\noffset=%s',
+                self.PRODUCT_DATA_URL,
+                response.status_code,
+                limit,
+                offset
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
-            logging.error(f'Ошибка при получении данных: {e}')
+        except Exception as error:
+            logging.error('Ошибка при получении данных: %s', error)
             raise DataFetchError(
-                f'Не удалось получить данные stocks: {e}'
-            ) from e
+                f'Не удалось получить данные stocks: {error}'
+            ) from error
 
     @time_of_function
     def get_all_sales_reports(self, date_str: str) -> list[dict]:
@@ -149,23 +158,26 @@ class WbAnalyticsClient:
                 ):
                     attempts += 1
                     logging.warning(
-                        '⏳ Сервер временно недоступен '
-                        f'({e.response.status_code}). '
-                        f'Попытка {attempts}/{MAX_RETRYING}. '
-                        'Ждём 60 секунд...'
+                        '⏳ Сервер временно недоступен (%s). Попытка %s/%s. '
+                        'Ждём 60 секунд...',
+                        e.response.status_code,
+                        attempts,
+                        MAX_RETRYING
                     )
                     if attempts > MAX_RETRYING:
                         logging.error(
-                            'Сервер недоступен. '
-                            'Количество попыток превысило допустимую квоту. '
-                            f'Ответ сервера: {e.response.status_code}'
+                            'Сервер недоступен. Количество попыток превысило '
+                            'допустимую квоту. Ответ сервера: %s',
+                            e.response.status_code
                         )
                         raise
                     time.sleep(60)
                     continue
                 else:
                     logging.error(
-                        f'Код ответа сервера: {e.response.status_code}')
+                        'Код ответа сервера: %s',
+                        e.response.status_code
+                    )
                     raise
             attempts = 0
             if not result:
@@ -217,23 +229,26 @@ class WbAnalyticsClient:
                 ):
                     attempts += 1
                     logging.warning(
-                        '⏳ Сервер временно недоступен '
-                        f'({e.response.status_code}). '
-                        f'Попытка {attempts}/{MAX_RETRYING}. '
-                        'Ждём 20 секунд...'
+                        '⏳ Сервер временно недоступен (%s). Попытка %s/%s. '
+                        'Ждём 20 секунд...',
+                        e.response.status_code,
+                        attempts,
+                        MAX_RETRYING
                     )
                     if attempts > MAX_RETRYING:
                         logging.error(
-                            'Сервер недоступен. '
-                            'Количество попыток превысило допустимую квоту. '
-                            f'Ответ сервера: {e.response.status_code}'
+                            'Сервер недоступен. Количество попыток превысило '
+                            'допустимую квоту. Ответ сервера: %s',
+                            e.response.status_code
                         )
                         raise
                     time.sleep(20)
                     continue
                 else:
                     logging.error(
-                        f'Код ответа сервера: {e.response.status_code}')
+                        'Код ответа сервера: %s',
+                        e.response.status_code
+                    )
                     raise
             attempts = 0
             if not result or 'data' not in result:
@@ -274,4 +289,4 @@ class WbAnalyticsClient:
             'json', date_str, prefix, folder)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        logging.info(f'✅ Данные сохранены в {filename}')
+        logging.info('✅ Данные сохранены в %s', filename)

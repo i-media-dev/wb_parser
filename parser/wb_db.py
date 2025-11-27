@@ -46,7 +46,7 @@ class WbDataBaseClient:
         """
         table_name = f'{type_table}_{type_data}_{self.shop_name}'
         if table_name in self._allowed_tables():
-            logging.info(f'Таблица {table_name} найдена в базе')
+            logging.info('Таблица %s найдена в базе', table_name)
             return table_name
 
         table_config = {
@@ -81,7 +81,7 @@ class WbDataBaseClient:
         }
 
         if type_data not in table_config:
-            logging.error(f'Неразрешенный тип данных таблицы: {type_data}')
+            logging.error('Неразрешенный тип данных таблицы: %s', type_data)
             raise TypeDataError
 
         config = table_config[type_data]
@@ -93,7 +93,7 @@ class WbDataBaseClient:
             raise RefTableError
         create_table_query = config['template'].format(**config['format_args'])
         cursor.execute(create_table_query)
-        logging.info(f'Таблица {table_name} успешно создана')
+        logging.info('Таблица %s успешно создана', table_name)
         return table_name
 
     def parse_product_data(
@@ -155,8 +155,8 @@ class WbDataBaseClient:
             table_name = self._create_table_if_not_exist('catalog', 'dates')
             query = INSERT_DATES.format(table_name=table_name)
             return query, (date, day, month, year, weekday)
-        except Exception as e:
-            logging.error(f'Ошибка во время валидации date: {e}')
+        except Exception as error:
+            logging.error('Ошибка во время валидации date: %s', error)
             return None, None
 
     def validate_products_db(self, data: list) -> tuple:
@@ -170,8 +170,8 @@ class WbDataBaseClient:
             query = INSERT_PRODUCTS.format(table_name=table_name)
             params = [(item['артикул'], item['наименование']) for item in data]
             return query, params
-        except Exception as e:
-            logging.error(f'Ошибка во время валидации products: {e}')
+        except Exception as error:
+            logging.error('Ошибка во время валидации products: %s', error)
             return None, None
 
     def validate_stocks_db(self, data: list) -> tuple:
@@ -193,8 +193,8 @@ class WbDataBaseClient:
                 (date, item['артикул'], item['остаток']) for item in data
             ]
             return query, params
-        except Exception as e:
-            logging.error(f'Ошибка во время валидации stocks: {e}')
+        except Exception as error:
+            logging.error('Ошибка во время валидации stocks: %s', error)
             return None, None
 
     def validate_sales_db(self, data: list) -> tuple:
@@ -220,8 +220,8 @@ class WbDataBaseClient:
                 ) for item in data
             ]
             return query, params
-        except Exception as e:
-            logging.error(f'Ошибка во время валидации sales: {e}')
+        except Exception as error:
+            logging.error('Ошибка во время валидации sales: %s', error)
             return None, None
 
     @connection_db
@@ -236,9 +236,9 @@ class WbDataBaseClient:
             query, params = query_data
             if not query or not params:
                 logger.bot_event(
-                    f'Данные для магазина {name_of_shop} '
-                    'не получены, получены частично или '
-                    'повреждены. Сохранение данных успешно провалилось'
+                    '❌ Данные для магазина %s не получены, получены частично '
+                    'или повреждены. Сохранение данных успешно провалилось',
+                    name_of_shop
                 )
                 return
             if isinstance(params, list):
@@ -249,8 +249,8 @@ class WbDataBaseClient:
                 '✅ Данные для магазина %s успешно сохранены!',
                 name_of_shop
             )
-        except Exception as e:
-            logging.error(f'Ошибка во время сохранения: {e}')
+        except Exception as error:
+            logging.error('Ошибка во время сохранения: %s', error)
             raise
 
     @connection_db
@@ -266,11 +266,11 @@ class WbDataBaseClient:
             for table_name, should_clean in tables.items():
                 if should_clean and table_name in existing_tables:
                     cursor.execute(f'DELETE FROM {table_name}')
-                    logging.info(f'Таблица {table_name} очищена')
+                    logging.info('Таблица %s очищена', table_name)
                 else:
                     raise TableNameError(
                         f'В базе данных отсутствует таблица {table_name}.'
                     )
-        except Exception as e:
-            logging.error(f'Ошибка очистки: {e}')
+        except Exception as error:
+            logging.error('Ошибка очистки: %s', error)
             raise
